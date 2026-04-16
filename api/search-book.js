@@ -9,19 +9,28 @@ export default async function handler(req, res) {
     const response = await fetch(url);
     const text = await response.text();
 
-    const cleaned = text
-      .replace(/^[^{[]*/, '')
-      .replace(/;?\s*$/, '')
-      .trim();
-
-    const data = JSON.parse(cleaned);
+    // 알라딘 응답에서 JSON 부분만 추출
+    // 형식: {"version":"20131101","title":"...",...,"item":[...]}
+    let data;
+    try {
+      // 순수 JSON인 경우
+      data = JSON.parse(text);
+    } catch {
+      // JSONP 형식인 경우: callme(true, {...}); 제거
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) {
+        data = JSON.parse(match[0]);
+      } else {
+        throw new Error('파싱 실패: ' + text.substring(0, 200));
+      }
+    }
 
     const books = (data.item || []).map(b => ({
-      title: b.title?.replace(/\s*\(.*?\)\s*$/, '').trim(),
+      title: b.title?.replace(/\s*-\s*.*$/, '').trim(),
       author: b.author,
       publisher: b.publisher,
       pubDate: b.pubDate?.substring(0, 4),
-      cover: b.cover?.replace('coversum', 'cover200'),
+      cover: b.cover?.replace('coversum', 'cover200') || '',
       isbn: b.isbn13,
     }));
 
