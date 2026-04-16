@@ -211,7 +211,7 @@
           <div class="block-desc">대출한 도서 1권을 검색해서 선택해주세요.</div>
         </div>
       </div>
-      <div class="notice">📚 알라딘 도서 검색 — 책 제목 또는 저자명을 입력하세요.</div>
+      <div class="notice">📚 알라딘 API 연동 예정 — 지금은 데모 데이터로 동작합니다.</div>
       <div class="search-row">
         <input class="inp" id="bookSearch" placeholder="책 제목 또는 저자명..." type="text"/>
         <button class="search-btn" onclick="searchBook()">검색</button>
@@ -292,7 +292,7 @@
           <div class="block-desc">이 책과 어울리는 음악을 1~3곡 선택해주세요.</div>
         </div>
       </div>
-      <div class="notice">🎵 Spotify 음악 검색 — 곡명 또는 아티스트명을 입력하세요.</div>
+      <div class="notice">🎵 Spotify API 연동 예정 — 지금은 데모 데이터로 동작합니다.</div>
       <div class="search-row">
         <input class="inp" id="trackSearch" placeholder="곡명 또는 아티스트명..." type="text"/>
         <button class="search-btn" onclick="searchTrack()">검색</button>
@@ -340,12 +340,33 @@
 <script>
   let anonMode=null, selectedBook=null, loanFileData=null, selectedTracks=[];
 
-  // 검색 중 표시용
-  function showSearchLoading(boxId) {
-    const box = document.getElementById(boxId);
-    box.style.display = 'block';
-    box.innerHTML = '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 중...</div>';
-  }
+  const demoBooks=[
+    {id:1,title:'채식주의자',author:'한강',publisher:'창비 · 2007'},
+    {id:2,title:'82년생 김지영',author:'조남주',publisher:'민음사 · 2016'},
+    {id:3,title:'아몬드',author:'손원평',publisher:'창비 · 2017'},
+    {id:4,title:'달러구트 꿈 백화점',author:'이미예',publisher:'팩토리나인 · 2020'},
+    {id:5,title:'불편한 편의점',author:'김호연',publisher:'나무옆의자 · 2021'},
+    {id:6,title:'파친코',author:'이민진',publisher:'문학사상 · 2018'},
+    {id:7,title:'흰',author:'한강',publisher:'문학동네 · 2016'},
+    {id:8,title:'소년이 온다',author:'한강',publisher:'창비 · 2014'},
+    {id:9,title:'나미야 잡화점의 기적',author:'히가시노 게이고',publisher:'현대문학 · 2012'},
+    {id:10,title:'노르웨이의 숲',author:'무라카미 하루키',publisher:'문학동네 · 2013'},
+  ];
+
+  const demoTracks=[
+    {id:'t1',name:'Blinding Lights',artist:'The Weeknd',duration:200},
+    {id:'t2',name:'drivers license',artist:'Olivia Rodrigo',duration:242},
+    {id:'t3',name:'아이와 나의 바다',artist:'IU',duration:238},
+    {id:'t4',name:'Dynamite',artist:'BTS',duration:199},
+    {id:'t5',name:'Celebrity',artist:'IU',duration:213},
+    {id:'t6',name:'After LIKE',artist:'IVE',duration:175},
+    {id:'t7',name:'ANTIFRAGILE',artist:'LE SSERAFIM',duration:170},
+    {id:'t8',name:'Hype Boy',artist:'NewJeans',duration:175},
+    {id:'t9',name:'좋은 날',artist:'IU',duration:229},
+    {id:'t10',name:'봄날',artist:'BTS',duration:300},
+    {id:'t11',name:'사랑하기 때문에',artist:'유재하',duration:253},
+    {id:'t12',name:'Starboy',artist:'The Weeknd',duration:230},
+  ];
 
   function selectAnon(mode){
     anonMode=mode;
@@ -356,42 +377,26 @@
     checkStep1();
   }
 
-  let bookSearchResults = [];
-
-  async function searchBook(){
+  function searchBook(){
     const q=document.getElementById('bookSearch').value.trim();
     if(!q)return;
-    showSearchLoading('bookResults');
-    try {
-      const res = await fetch(`/api/search-book?q=${encodeURIComponent(q)}`);
-      const books = await res.json();
-      bookSearchResults = books;
-      const box=document.getElementById('bookResults');
-      box.style.display='block';
-      box.innerHTML=books.length
-        ? books.map((b,i)=>`
-            <div class="result-item" onclick="selectBook(${i})">
-              ${b.cover ? `<img src="${b.cover}" class="result-thumb" style="width:36px;height:52px;object-fit:cover;border-radius:2px;">` : '<div class="result-thumb">📖</div>'}
-              <div class="result-info">
-                <div class="result-title">${b.title}</div>
-                <div class="result-sub">${b.author} · ${b.publisher}${b.pubDate ? ' · ' + b.pubDate : ''}</div>
-              </div>
-            </div>`).join('')
-        : '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 결과가 없습니다.</div>';
-    } catch(e) {
-      document.getElementById('bookResults').innerHTML = '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 오류가 발생했습니다.</div>';
-    }
+    const results=demoBooks.filter(b=>b.title.includes(q)||b.author.includes(q));
+    const box=document.getElementById('bookResults');
+    box.style.display='block';
+    box.innerHTML=results.length
+      ? results.map(b=>`<div class="result-item" onclick="selectBook(${b.id})"><div class="result-thumb">📖</div><div class="result-info"><div class="result-title">${b.title}</div><div class="result-sub">${b.author} · ${b.publisher}</div></div></div>`).join('')
+      : '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 결과가 없습니다.</div>';
   }
 
-  function selectBook(idx){
-    selectedBook=bookSearchResults[idx];
+  function selectBook(id){
+    selectedBook=demoBooks.find(b=>b.id===id);
     if(!selectedBook)return;
     document.getElementById('bookResults').style.display='none';
     document.getElementById('bookSearch').value='';
     document.getElementById('bookCard').classList.add('show');
     document.getElementById('bookTitleEl').textContent=selectedBook.title;
     document.getElementById('bookAuthorEl').textContent=selectedBook.author;
-    document.getElementById('bookPubEl').textContent=selectedBook.publisher + (selectedBook.pubDate ? ' · ' + selectedBook.pubDate : '');
+    document.getElementById('bookPubEl').textContent=selectedBook.publisher;
     checkStep1();
   }
 
@@ -432,40 +437,23 @@
     document.getElementById('nextBtn1').disabled=!(anonMode&&nameOk&&selectedBook&&loanFileData&&quoteOk);
   }
 
-  let trackSearchResults = [];
-
-  async function searchTrack(){
+  function searchTrack(){
     const q=document.getElementById('trackSearch').value.trim();
     if(!q)return;
     if(selectedTracks.length>=3){alert('최대 3곡까지 선택할 수 있습니다.');return;}
-    showSearchLoading('trackResults');
-    try {
-      const res = await fetch(`/api/search-track?q=${encodeURIComponent(q)}`);
-      const tracks = await res.json();
-      trackSearchResults = tracks;
-      const box=document.getElementById('trackResults');
-      box.style.display='block';
-      box.innerHTML=tracks.length
-        ? tracks.map((t,i)=>`
-            <div class="result-item" onclick="addTrack(${i})">
-              ${t.thumb ? `<img src="${t.thumb}" class="result-thumb-round" style="width:36px;height:36px;object-fit:cover;border-radius:50%;">` : '<div class="result-thumb-round">♪</div>'}
-              <div class="result-info">
-                <div class="result-title">${t.name}</div>
-                <div class="result-sub">${t.artist}</div>
-              </div>
-              <div class="result-dur">${fmt(t.duration)}</div>
-            </div>`).join('')
-        : '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 결과가 없습니다.</div>';
-    } catch(e) {
-      document.getElementById('trackResults').innerHTML = '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 오류가 발생했습니다.</div>';
-    }
+    const results=demoTracks.filter(t=>t.name.toLowerCase().includes(q.toLowerCase())||t.artist.toLowerCase().includes(q.toLowerCase()));
+    const box=document.getElementById('trackResults');
+    box.style.display='block';
+    box.innerHTML=results.length
+      ? results.map(t=>`<div class="result-item" onclick="addTrack('${t.id}')"><div class="result-thumb-round">♪</div><div class="result-info"><div class="result-title">${t.name}</div><div class="result-sub">${t.artist}</div></div><div class="result-dur">${fmt(t.duration)}</div></div>`).join('')
+      : '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 결과가 없습니다.</div>';
   }
 
-  function addTrack(idx){
+  function addTrack(id){
     if(selectedTracks.length>=3){alert('최대 3곡까지 선택할 수 있습니다.');return;}
-    const track=trackSearchResults[idx];
+    if(selectedTracks.find(t=>t.id===id)){alert('이미 추가된 곡입니다.');return;}
+    const track=demoTracks.find(t=>t.id===id);
     if(!track)return;
-    if(selectedTracks.find(t=>t.id===track.id)){alert('이미 추가된 곡입니다.');return;}
     selectedTracks.push(track);
     document.getElementById('trackResults').style.display='none';
     document.getElementById('trackSearch').value='';
@@ -536,7 +524,7 @@
       ? document.getElementById('nickname').value.trim()
       : document.getElementById('realName').value.trim()+' · '+document.getElementById('realDept').value.trim();
     const payload={anonMode,displayName,book:selectedBook,bookQuote:document.getElementById('bookQuote').value.trim(),tracks:selectedTracks,totalDuration:selectedTracks.reduce((s,t)=>s+t.duration,0),reason:document.getElementById('reason').value.trim(),submittedAt:new Date().toISOString()};
-    // await fetch('https://script.google.com/macros/s/AKfycbwvxddIfUU2lI-cEChKlRVtdgDB-xCJ6O4M9Qx1uFtVykOsLvbJimRPjhFkI11hlvSc/exec',{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+    // await fetch('https://script.google.com/macros/s/AKfycbySAvVQLWFkiRxr-E1I-1DOdCcvMsP-dnTLUotzf7uWV5DF6kzsH_yDcjtEjS9T-Dov/exec',{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
     await new Promise(r=>setTimeout(r,1000));
     console.log('제출 데이터:',payload);
     document.getElementById('step2View').style.display='none';
