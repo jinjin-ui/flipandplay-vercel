@@ -16,7 +16,19 @@ export default async function handler(req, res) {
       body: 'grant_type=client_credentials',
     });
 
-    const tokenData = await tokenRes.json();
+    // 토큰 응답 텍스트 그대로 확인
+    const tokenText = await tokenRes.text();
+    let tokenData;
+    try {
+      tokenData = JSON.parse(tokenText);
+    } catch {
+      return res.status(500).json({ error: 'token parse fail', raw: tokenText });
+    }
+
+    if (!tokenData.access_token) {
+      return res.status(500).json({ error: 'no access_token', tokenData });
+    }
+
     const accessToken = tokenData.access_token;
 
     // 2. 트랙 검색
