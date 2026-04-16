@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLIP & PLAY 3F — 관리자</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+  :root {
+    --bg:#0D0D0D; --bg2:#141220; --bg3:#1E1B30;
+    --accent:#7F77DD; --accent-light:#AFA9EC; --accent-dark:#534AB7;
+    --text:#F0EEF8; --text-muted:#888; --text-dim:#444;
+    --border:#2A2A2A; --border-accent:#3C3489;
+    --green:#1D9E75; --red:#E24B4A; --amber:#BA7517;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans KR',sans-serif;
+    min-height:100vh;
+  }
+
+  body::before{
+    content:'';position:fixed;inset:0;
+    background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+    background-size:80px 80px;opacity:.15;pointer-events:none;z-index:0;
+  }
+
+  .wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 28px 80px;}
+
+  /* Header */
+  header{
+    padding:28px 0 24px;
+    border-bottom:.5px solid var(--border);
+    margin-bottom:32px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+
+  .logo-group{display:flex;align-items:baseline;gap:16px;}
+
+  .logo{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:32px;letter-spacing:2px;
+  }
+
+  .logo span{color:var(--accent-light);}
+
+  .admin-badge{
+    font-family:'DM Mono',monospace;
+    font-size:10px;letter-spacing:2px;
+    color:var(--accent-dark);
+    background:var(--bg3);
+    border:.5px solid var(--border-accent);
+    border-radius:4px;
+    padding:4px 10px;
+  }
+
+  .header-actions{display:flex;gap:10px;align-items:center;}
+
+  /* Buttons */
+  .btn{
+    border:none;border-radius:6px;
+    padding:10px 18px;
+    font-size:13px;font-family:'Noto Sans KR',sans-serif;
+    cursor:pointer;transition:all .2s;
+    font-weight:500;
+  }
+
+  .btn-primary{background:var(--accent-dark);color:#fff;}
+  .btn-primary:hover{background:var(--accent);}
+
+  .btn-outline{
+    background:none;
+    border:.5px solid var(--border);
+    color:var(--text-muted);
+  }
+
+  .btn-outline:hover{border-color:var(--accent-dark);color:var(--text);}
+
+  .btn-green{background:var(--green);color:#fff;}
+  .btn-green:hover{opacity:.85;}
+
+  .btn-red{background:none;border:.5px solid var(--red);color:var(--red);}
+  .btn-red:hover{background:var(--red);color:#fff;}
+
+  .btn-sm{padding:6px 12px;font-size:12px;}
+
+  /* Stats row */
+  .stats-row{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:28px;
+  }
+
+  .stat-card{
+    background:var(--bg2);
+    border:.5px solid var(--border);
+    border-radius:8px;
+    padding:14px 18px;
+  }
+
+  .stat-label{font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:6px;}
+
+  .stat-val{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--text);line-height:1;}
+
+  .stat-val.green{color:var(--green);}
+  .stat-val.amber{color:var(--accent-light);}
+  .stat-val.red{color:var(--red);}
+
+  /* Filter tabs */
+  .filter-tabs{
+    display:flex;gap:6px;
+    margin-bottom:20px;
+  }
+
+  .tab{
+    padding:8px 16px;
+    border-radius:6px;
+    font-size:12px;
+    font-family:'DM Mono',monospace;
+    letter-spacing:1px;
+    cursor:pointer;
+    border:.5px solid var(--border);
+    color:var(--text-dim);
+    background:none;
+    transition:all .2s;
+  }
+
+  .tab.active{
+    background:var(--accent-dark);
+    border-color:var(--accent-dark);
+    color:#fff;
+  }
+
+  .tab:hover:not(.active){border-color:var(--accent-dark);color:var(--text);}
+
+  /* Table */
+  .table-wrap{
+    background:var(--bg2);
+    border:.5px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    margin-bottom:24px;
+  }
+
+  table{width:100%;border-collapse:collapse;}
+
+  thead tr{border-bottom:.5px solid var(--border);}
+
+  th{
+    padding:12px 14px;
+    font-family:'DM Mono',monospace;
+    font-size:10px;letter-spacing:1.5px;
+    color:var(--text-dim);
+    text-align:left;font-weight:400;
+  }
+
+  tbody tr{
+    border-bottom:.5px solid var(--border);
+    transition:background .15s;
+    cursor:pointer;
+  }
+
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:var(--bg3);}
+
+  td{padding:12px 14px;font-size:13px;vertical-align:middle;}
+
+  .td-book{
+    display:flex;flex-direction:column;gap:2px;
+  }
+
+  .td-book-title{font-weight:500;color:var(--text);}
+  .td-book-author{font-size:11px;color:var(--text-muted);}
+
+  .td-curator{font-size:13px;color:var(--text-muted);}
+
+  .td-tracks{
+    font-family:'DM Mono',monospace;
+    font-size:11px;color:var(--text-dim);
+  }
+
+  .td-duration{
+    font-family:'DM Mono',monospace;
+    font-size:12px;color:var(--accent-light);
+  }
+
+  .td-date{font-size:11px;color:var(--text-dim);}
+
+  /* Status badge */
+  .status-badge{
+    display:inline-flex;align-items:center;gap:4px;
+    border-radius:4px;
+    padding:3px 8px;
+    font-size:10px;
+    font-family:'DM Mono',monospace;
+    letter-spacing:.5px;
+  }
+
+  .status-badge.pending{
+    background:rgba(186,117,23,.1);
+    border:.5px solid rgba(186,117,23,.3);
+    color:#EF9F27;
+  }
+
+  .status-badge.approved{
+    background:rgba(29,158,117,.1);
+    border:.5px solid rgba(29,158,117,.3);
+    color:#1D9E75;
+  }
+
+  .status-badge.rejected{
+    background:rgba(226,75,74,.1);
+    border:.5px solid rgba(226,75,74,.3);
+    color:#E24B4A;
+  }
+
+  .status-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+  /* Actions col */
+  .action-group{display:flex;gap:6px;}
+
+  /* Detail panel */
+  .detail-panel{
+    display:none;
+    position:fixed;
+    top:0;right:0;bottom:0;
+    width:460px;
+    background:var(--bg2);
+    border-left:.5px solid var(--border);
+    z-index:50;
+    flex-direction:column;
+    animation:slideIn .25s ease;
+  }
+
+  .detail-panel.open{display:flex;}
+
+  @keyframes slideIn{
+    from{transform:translateX(100%);}
+    to{transform:translateX(0);}
+  }
+
+  .detail-header{
+    padding:20px 24px;
+    border-bottom:.5px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+    flex-shrink:0;
+  }
+
+  .detail-title{font-size:14px;font-weight:500;}
+
+  .close-btn{
+    background:none;border:none;
+    color:var(--text-dim);font-size:18px;
+    cursor:pointer;padding:4px;
+    transition:color .15s;
+  }
+
+  .close-btn:hover{color:var(--text);}
+
+  .detail-body{
+    flex:1;overflow-y:auto;
+    padding:20px 24px;
+    display:flex;flex-direction:column;gap:16px;
+  }
+
+  .detail-section{
+    background:var(--bg3);
+    border:.5px solid var(--border);
+    border-radius:8px;
+    padding:14px 16px;
+  }
+
+  .detail-section-label{
+    font-family:'DM Mono',monospace;
+    font-size:10px;letter-spacing:1.5px;
+    color:var(--text-dim);
+    margin-bottom:10px;
+  }
+
+  .detail-book-row{display:flex;gap:12px;align-items:flex-start;}
+
+  .detail-book-cover{
+    width:52px;height:76px;
+    border-radius:3px;background:var(--bg);
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    font-size:20px;color:var(--text-dim);
+    border:.5px solid var(--border);
+  }
+
+  .detail-book-title{font-size:14px;font-weight:500;margin-bottom:3px;}
+  .detail-book-author{font-size:12px;color:var(--text-muted);}
+  .detail-book-pub{font-size:11px;color:var(--text-dim);margin-top:3px;}
+
+  .detail-quote{
+    font-size:13px;color:var(--text-muted);
+    line-height:1.8;font-style:italic;
+    border-left:2px solid var(--accent-dark);
+    padding-left:12px;
+  }
+
+  .detail-track-item{
+    display:flex;align-items:center;gap:10px;
+    padding:8px 0;
+    border-bottom:.5px solid var(--border);
+  }
+
+  .detail-track-item:last-child{border-bottom:none;}
+
+  .detail-track-num{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:18px;color:var(--accent-dark);
+    min-width:16px;
+  }
+
+  .detail-track-info{flex:1;}
+  .detail-track-name{font-size:13px;font-weight:500;}
+  .detail-track-artist{font-size:11px;color:var(--text-muted);margin-top:1px;}
+
+  .detail-track-dur{
+    font-family:'DM Mono',monospace;
+    font-size:11px;color:var(--accent-light);
+  }
+
+  .detail-reason{
+    font-size:13px;color:var(--text-muted);
+    line-height:1.7;
+  }
+
+  .detail-footer{
+    padding:16px 24px;
+    border-top:.5px solid var(--border);
+    display:flex;gap:8px;
+    flex-shrink:0;
+  }
+
+  .detail-loan-img{
+    width:100%;border-radius:6px;
+    border:.5px solid var(--border);
+    margin-top:6px;
+    max-height:160px;
+    object-fit:contain;
+    background:#000;
+  }
+
+  /* Export section */
+  .export-section{
+    background:var(--bg2);
+    border:.5px solid var(--border-accent);
+    border-radius:10px;
+    padding:20px 24px;
+  }
+
+  .export-title{
+    font-size:14px;font-weight:500;
+    margin-bottom:4px;
+  }
+
+  .export-desc{
+    font-size:12px;color:var(--text-muted);
+    margin-bottom:16px;line-height:1.6;
+  }
+
+  .export-actions{display:flex;gap:10px;flex-wrap:wrap;}
+
+  /* Overlay */
+  .overlay{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.4);
+    z-index:40;
+  }
+
+  .overlay.show{display:block;}
+
+  /* Empty state */
+  .empty-state{
+    padding:48px;
+    text-align:center;
+    color:var(--text-dim);
+    font-size:13px;
+  }
+
+  /* Notice */
+  .notice{
+    background:var(--bg3);
+    border:.5px solid var(--border-accent);
+    border-radius:6px;
+    padding:10px 14px;
+    font-size:12px;color:var(--accent-light);
+    margin-bottom:20px;
+    font-family:'DM Mono',monospace;
+    line-height:1.5;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="logo-group">
+      <div class="logo">FLIP <span>&</span> PLAY 3F</div>
+      <div class="admin-badge">ADMIN</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="loadFromSheet()">🔄 시트에서 불러오기</button>
+      <button class="btn btn-primary" onclick="exportBeamPage()">📺 빔프로젝터 파일 내보내기</button>
+    </div>
+  </header>
+
+  <div class="notice">
+    ✅ Google Apps Script 연동 완료
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">TOTAL</div>
+      <div class="stat-val" id="statTotal">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">PENDING</div>
+      <div class="stat-val amber" id="statPending">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">APPROVED</div>
+      <div class="stat-val green" id="statApproved">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">REJECTED</div>
+      <div class="stat-val red" id="statRejected">0</div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-tabs">
+    <button class="tab active" onclick="setFilter('all',this)">전체</button>
+    <button class="tab" onclick="setFilter('pending',this)">대기중</button>
+    <button class="tab" onclick="setFilter('approved',this)">승인됨</button>
+    <button class="tab" onclick="setFilter('rejected',this)">거절됨</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>도서</th>
+          <th>신청자</th>
+          <th>음악</th>
+          <th>총 시간</th>
+          <th>신청일</th>
+          <th>상태</th>
+          <th>처리</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="empty-state" id="emptyState" style="display:none;">신청 내역이 없습니다.</div>
+  </div>
+
+  <!-- Export -->
+  <div class="export-section">
+    <div class="export-title">빔프로젝터 파일 내보내기</div>
+    <div class="export-desc">
+      승인된 큐레이션만 모아서 빔프로젝터 재생 HTML 파일을 자동 생성합니다.<br>
+      생성된 파일을 다운로드 후 노트북에서 브라우저로 열면 바로 재생됩니다.
+    </div>
+    <div class="export-actions">
+      <button class="btn btn-primary" onclick="exportBeamPage()">📺 빔프로젝터 HTML 생성 + 다운로드</button>
+      <button class="btn btn-outline" onclick="previewBeam()">👁 미리보기</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Detail panel overlay -->
+<div class="overlay" id="overlay" onclick="closeDetail()"></div>
+
+<!-- Detail panel -->
+<div class="detail-panel" id="detailPanel">
+  <div class="detail-header">
+    <div class="detail-title" id="detailTitleEl">신청 상세</div>
+    <button class="close-btn" onclick="closeDetail()">✕</button>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+  <div class="detail-footer" id="detailFooter"></div>
+</div>
+
+<script>
+  // ── CONFIG ──
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwvxddIfUU2lI-cEChKlRVtdgDB-xCJ6O4M9Qx1uFtVykOsLvbJimRPjhFkI11hlvSc/exec'; // 여기에 Apps Script URL 입력
+
+  // ── 데모 데이터 ──
+  let submissions = [
+    {
+      id: 1,
+      status: 'pending',
+      displayName: '책읽는고양이',
+      anonMode: 'anon',
+      book: { title: '채식주의자', author: '한강', publisher: '창비 · 2007' },
+      bookQuote: '"나는 이상하게 될 것이다. 이미 이상해지기 시작했는지도 모른다. 하지만 이 이상함이 나를 자유롭게 한다."',
+      tracks: [
+        { name: 'Blinding Lights', artist: 'The Weeknd', duration: 200 },
+        { name: '아이와 나의 바다', artist: 'IU', duration: 238 },
+        { name: 'drivers license', artist: 'Olivia Rodrigo', duration: 242 },
+      ],
+      reason: '주인공의 내면 흐름이 이 곡들의 분위기와 닮아있다고 생각했어요.',
+      submittedAt: '2025-05-01T14:23:00',
+      loanImg: null,
+    },
+    {
+      id: 2,
+      status: 'approved',
+      displayName: '음악탐험가',
+      anonMode: 'anon',
+      book: { title: '82년생 김지영', author: '조남주', publisher: '민음사 · 2016' },
+      bookQuote: '"누군가의 딸이고 누군가의 아내이고 누군가의 엄마이기 이전에, 김지영은 김지영이었다."',
+      tracks: [
+        { name: 'Celebrity', artist: 'IU', duration: 213 },
+        { name: 'After LIKE', artist: 'IVE', duration: 175 },
+      ],
+      reason: '책이 전하는 메시지와 이 곡들의 당당함이 잘 맞아떨어진다고 생각했어요.',
+      submittedAt: '2025-05-02T10:11:00',
+      loanImg: null,
+    },
+    {
+      id: 3,
+      status: 'rejected',
+      displayName: '이지연 · 심리학과 2학년',
+      anonMode: 'real',
+      book: { title: '아몬드', author: '손원평', publisher: '창비 · 2017' },
+      bookQuote: '"감정이 없다는 건 아프지 않다는 게 아니다. 그냥 다르게 아픈 것이다."',
+      tracks: [
+        { name: 'Hype Boy', artist: 'NewJeans', duration: 175 },
+      ],
+      reason: '책의 감정 표현과 음악의 에너지가 대비되어 흥미롭다고 생각했어요.',
+      submittedAt: '2025-05-02T16:44:00',
+      loanImg: null,
+    },
+    {
+      id: 4,
+      status: 'pending',
+      displayName: '노을읽는사람',
+      anonMode: 'anon',
+      book: { title: '봄날', author: '백수린', publisher: '민음사 · 2020' },
+      bookQuote: '"봄은 언제나 그렇게 찾아온다. 아무도 모르게, 아무도 준비하지 않은 사이에."',
+      tracks: [
+        { name: '봄날', artist: 'BTS', duration: 300 },
+        { name: '좋은 날', artist: 'IU', duration: 229 },
+        { name: '사랑하기 때문에', artist: '유재하', duration: 253 },
+      ],
+      reason: '봄날의 따뜻하고 쓸쓸한 감성이 이 책의 분위기와 딱 맞았어요.',
+      submittedAt: '2025-05-03T09:05:00',
+      loanImg: null,
+    },
+  ];
+
+  let currentFilter = 'all';
+  let currentDetailId = null;
+
+  function fmt(sec) {
+    return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+  }
+
+  function fmtDate(iso) {
+    const d = new Date(iso);
+    return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  function totalDur(tracks) {
+    return tracks.reduce((s, t) => s + t.duration, 0);
+  }
+
+  function updateStats() {
+    document.getElementById('statTotal').textContent = submissions.length;
+    document.getElementById('statPending').textContent = submissions.filter(s=>s.status==='pending').length;
+    document.getElementById('statApproved').textContent = submissions.filter(s=>s.status==='approved').length;
+    document.getElementById('statRejected').textContent = submissions.filter(s=>s.status==='rejected').length;
+  }
+
+  function renderTable() {
+    const filtered = currentFilter === 'all' ? submissions : submissions.filter(s => s.status === currentFilter);
+    const tbody = document.getElementById('tableBody');
+    const empty = document.getElementById('emptyState');
+
+    if (!filtered.length) {
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+
+    empty.style.display = 'none';
+    tbody.innerHTML = filtered.map(s => `
+      <tr onclick="openDetail(${s.id})">
+        <td>
+          <div class="td-book">
+            <div class="td-book-title">${s.book.title}</div>
+            <div class="td-book-author">${s.book.author}</div>
+          </div>
+        </td>
+        <td class="td-curator">${s.displayName}</td>
+        <td class="td-tracks">${s.tracks.length}곡</td>
+        <td class="td-duration">${fmt(totalDur(s.tracks))}</td>
+        <td class="td-date">${fmtDate(s.submittedAt)}</td>
+        <td>
+          <span class="status-badge ${s.status}">
+            <span class="status-dot"></span>
+            ${{pending:'대기중',approved:'승인',rejected:'거절'}[s.status]}
+          </span>
+        </td>
+        <td onclick="event.stopPropagation()">
+          <div class="action-group">
+            ${s.status !== 'approved' ? `<button class="btn btn-green btn-sm" onclick="setStatus(${s.id},'approved')">승인</button>` : ''}
+            ${s.status !== 'rejected' ? `<button class="btn btn-red btn-sm" onclick="setStatus(${s.id},'rejected')">거절</button>` : ''}
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function setFilter(f, el) {
+    currentFilter = f;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderTable();
+  }
+
+  function setStatus(id, status) {
+    const s = submissions.find(s => s.id === id);
+    if (!s) return;
+    s.status = status;
+    updateStats();
+    renderTable();
+    if (currentDetailId === id) renderDetail(id);
+
+    // 실제 연동 시:
+    // fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'updateStatus', id, status }) });
+  }
+
+  function openDetail(id) {
+    currentDetailId = id;
+    renderDetail(id);
+    document.getElementById('detailPanel').classList.add('open');
+    document.getElementById('overlay').classList.add('show');
+  }
+
+  function renderDetail(id) {
+    const s = submissions.find(s => s.id === id);
+    if (!s) return;
+
+    document.getElementById('detailTitleEl').textContent = s.book.title;
+
+    document.getElementById('detailBody').innerHTML = `
+      <div class="detail-section">
+        <div class="detail-section-label">BOOK</div>
+        <div class="detail-book-row">
+          <div class="detail-book-cover">📖</div>
+          <div>
+            <div class="detail-book-title">${s.book.title}</div>
+            <div class="detail-book-author">${s.book.author}</div>
+            <div class="detail-book-pub">${s.book.publisher}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-label">인상 깊은 구절</div>
+        <div class="detail-quote">${s.bookQuote}</div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-label">PLAYLIST · ${s.tracks.length}곡 · 총 ${fmt(totalDur(s.tracks))}</div>
+        ${s.tracks.map((t,i) => `
+          <div class="detail-track-item">
+            <div class="detail-track-num">${i+1}</div>
+            <div class="detail-track-info">
+              <div class="detail-track-name">${t.name}</div>
+              <div class="detail-track-artist">${t.artist}</div>
+            </div>
+            <div class="detail-track-dur">${fmt(t.duration)}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-label">선정 이유</div>
+        <div class="detail-reason">${s.reason}</div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-label">신청자</div>
+        <div style="font-size:13px;color:var(--text-muted);">
+          ${s.displayName} · ${s.anonMode === 'anon' ? '익명' : '실명'}<br>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim)">${fmtDate(s.submittedAt)}</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-label">대출 인증 (관리자 확인용)</div>
+        ${s.loanImg
+          ? `<img class="detail-loan-img" src="${s.loanImg}" alt="대출 인증"/>`
+          : `<div style="font-size:12px;color:var(--text-dim);padding:8px 0;">첨부 이미지 없음 (데모)</div>`
+        }
+      </div>
+    `;
+
+    document.getElementById('detailFooter').innerHTML = `
+      <span class="status-badge ${s.status}" style="margin-right:auto;">
+        <span class="status-dot"></span>
+        ${{pending:'대기중',approved:'승인됨',rejected:'거절됨'}[s.status]}
+      </span>
+      ${s.status !== 'approved' ? `<button class="btn btn-green" onclick="setStatus(${s.id},'approved')">승인</button>` : ''}
+      ${s.status !== 'rejected' ? `<button class="btn btn-red" onclick="setStatus(${s.id},'rejected')">거절</button>` : ''}
+    `;
+  }
+
+  function closeDetail() {
+    document.getElementById('detailPanel').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
+    currentDetailId = null;
+  }
+
+  // ── 구글 시트에서 불러오기 ──
+  async function loadFromSheet() {
+    if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbwvxddIfUU2lI-cEChKlRVtdgDB-xCJ6O4M9Qx1uFtVykOsLvbJimRPjhFkI11hlvSc/exec') {
+      alert('Google Apps Script URL을 설정해주세요.\nSCRIPT_URL 변수에 URL을 입력하세요.');
+      return;
+    }
+    try {
+      const res = await fetch(SCRIPT_URL + '?action=getAll');
+      const data = await res.json();
+      submissions = data;
+      updateStats();
+      renderTable();
+    } catch (e) {
+      alert('불러오기 실패: ' + e.message);
+    }
+  }
+
+  // ── 빔프로젝터 HTML 생성 ──
+  function exportBeamPage() {
+    const approved = submissions.filter(s => s.status === 'approved');
+    if (!approved.length) {
+      alert('승인된 큐레이션이 없습니다.');
+      return;
+    }
+
+    const curationsJson = JSON.stringify(approved.map(s => ({
+      curator: s.displayName,
+      book: s.book,
+      quote: s.bookQuote,
+      tracks: s.tracks,
+      reason: s.reason,
+    })), null, 2);
+
+    const html = generateBeamHTML(curationsJson);
+    downloadFile('flip-and-play-beam.html', html);
+  }
+
+  function previewBeam() {
+    const approved = submissions.filter(s => s.status === 'approved');
+    if (!approved.length) {
+      alert('승인된 큐레이션이 없습니다.');
+      return;
+    }
+    const curationsJson = JSON.stringify(approved.map(s => ({
+      curator: s.displayName,
+      book: s.book,
+      quote: s.bookQuote,
+      tracks: s.tracks,
+      reason: s.reason,
+    })));
+    const html = generateBeamHTML(curationsJson);
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  }
+
+  function downloadFile(filename, content) {
+    const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+  }
+
+  function generateBeamHTML(curationsJson) {
+    return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLIP & PLAY 3F — 재생</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0D0A08;color:#F0EEF8;font-family:'Noto Sans KR',sans-serif;width:100vw;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+.bg-blur{position:fixed;inset:0;z-index:0;background:linear-gradient(135deg,#1A1210 0%,#0D0A08 50%,#12100E 100%);}
+.bg-blur::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(83,74,183,0.08) 0%,transparent 60%),radial-gradient(ellipse at 70% 50%,rgba(139,90,43,0.06) 0%,transparent 60%);}
+.screen{position:relative;z-index:1;display:flex;flex-direction:column;width:100%;height:100%;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px 12px;border-bottom:.5px solid rgba(255,255,255,0.06);flex-shrink:0;}
+.menu-icon{width:32px;height:24px;display:flex;flex-direction:column;justify-content:space-between;opacity:.5;}
+.menu-icon span{display:block;height:1.5px;background:#F0EEF8;border-radius:2px;}
+.topbar-center{text-align:center;}
+.barcode-bars{display:flex;gap:1px;align-items:center;margin-bottom:3px;justify-content:center;}
+.barcode-bars span{display:inline-block;background:rgba(255,255,255,0.5);border-radius:0.5px;}
+.library-name{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:5px;color:rgba(255,255,255,0.35);margin-bottom:4px;}
+.program-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:#F0EEF8;line-height:1;}
+.topbar-right{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1px;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#AFA9EC;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.main{display:flex;flex:1;overflow:hidden;padding:16px 28px;}
+.col-left{width:22%;display:flex;flex-direction:column;gap:12px;padding-right:20px;}
+.section-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.25);margin-bottom:6px;}
+.book-intro{flex:1;background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.08);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.book-intro-title{font-size:13px;font-weight:700;color:#F0EEF8;line-height:1.4;}
+.book-intro-author{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.4);}
+.book-intro-divider{height:.5px;background:rgba(255,255,255,0.08);}
+.book-quote{font-size:12px;color:rgba(255,255,255,0.6);line-height:1.9;flex:1;font-style:italic;word-break:keep-all;}
+.quote-mark{font-family:'Bebas Neue',sans-serif;font-size:36px;color:rgba(83,74,183,0.3);line-height:0.8;display:block;margin-bottom:4px;}
+.col-center{flex:1;display:flex;align-items:center;justify-content:center;position:relative;}
+.vinyl-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
+.vinyl{width:220px;height:220px;border-radius:50%;background:radial-gradient(circle at 50%,#1a1a1a 0%,#1a1a1a 12%,transparent 12%),repeating-radial-gradient(circle at 50%,#111 0px,#111 2px,#1a1a1a 2px,#1a1a1a 6px);border:2px solid #2a2a2a;position:absolute;right:-60px;animation:spin 8s linear infinite;box-shadow:inset 0 0 40px rgba(0,0,0,0.8);}
+.vinyl::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:#222;border:1px solid #333;}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.vinyl.paused{animation-play-state:paused;}
+.book-cover-placeholder{width:200px;aspect-ratio:2/3;background:linear-gradient(135deg,#1E1B30,#141220);border-radius:4px;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;border:.5px solid rgba(83,74,183,0.2);}
+.book-cover-placeholder-text{text-align:center;padding:20px;}
+.placeholder-title{font-size:14px;font-weight:700;color:#F0EEF8;line-height:1.4;margin-bottom:8px;}
+.placeholder-author{font-size:11px;color:rgba(255,255,255,0.4);font-family:'DM Mono',monospace;}
+.col-right{width:30%;display:flex;flex-direction:column;gap:10px;padding-left:20px;}
+.curator-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.08);border-radius:8px;}
+.curator-avatar{width:32px;height:32px;border-radius:50%;background:rgba(83,74,183,0.3);border:.5px solid rgba(83,74,183,0.4);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.curator-label{font-size:10px;color:rgba(255,255,255,0.3);font-family:'DM Mono',monospace;letter-spacing:1px;}
+.curator-name{font-size:14px;font-weight:500;color:#F0EEF8;}
+.track-list-wrap{display:flex;flex-direction:column;gap:6px;flex:1;overflow:hidden;}
+.track-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.06);border-radius:8px;transition:all .3s;}
+.track-row.active{background:rgba(83,74,183,0.15);border-color:rgba(83,74,183,0.3);}
+.track-thumb{width:44px;height:44px;border-radius:6px;background:#1E1B30;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,255,255,0.2);position:relative;}
+.track-thumb .playing-bars{display:none;gap:2px;align-items:flex-end;height:20px;}
+.track-row.active .track-thumb .playing-bars{display:flex;}
+.track-row.active .track-thumb .track-icon{display:none;}
+.playing-bar{width:3px;border-radius:2px;background:#AFA9EC;animation:barAnim 0.8s ease-in-out infinite;}
+.playing-bar:nth-child(1){height:10px;animation-delay:0s;}
+.playing-bar:nth-child(2){height:18px;animation-delay:0.15s;}
+.playing-bar:nth-child(3){height:12px;animation-delay:0.3s;}
+.playing-bar:nth-child(4){height:16px;animation-delay:0.1s;}
+@keyframes barAnim{0%,100%{transform:scaleY(0.4)}50%{transform:scaleY(1)}}
+.track-info{flex:1;min-width:0;}
+.track-name{font-size:13px;font-weight:500;color:#F0EEF8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.track-row.active .track-name{color:#AFA9EC;}
+.track-artist{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.track-dur{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.25);flex-shrink:0;}
+.reason-box{background:rgba(255,255,255,0.04);border:.5px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px 14px;}
+.reason-header{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.reason-icon{width:16px;height:16px;border-radius:50%;border:.5px solid rgba(175,169,236,0.4);display:flex;align-items:center;justify-content:center;font-size:9px;color:#AFA9EC;flex-shrink:0;}
+.reason-label{font-size:10px;font-weight:500;color:rgba(255,255,255,0.5);letter-spacing:.5px;}
+.reason-text{font-size:12px;color:rgba(255,255,255,0.55);line-height:1.7;word-break:keep-all;}
+.bottom-bar{flex-shrink:0;padding:10px 28px 18px;border-top:.5px solid rgba(255,255,255,0.06);}
+.progress-wrap{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.time-label{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.3);min-width:36px;}
+.time-label.end{text-align:right;}
+.progress-track{flex:1;height:3px;background:rgba(255,255,255,0.1);border-radius:3px;cursor:pointer;overflow:hidden;}
+.progress-fill{height:100%;background:#AFA9EC;border-radius:3px;transition:width .5s linear;width:0%;}
+.controls{display:flex;align-items:center;justify-content:center;gap:32px;}
+.ctrl-btn{background:none;border:none;color:rgba(255,255,255,0.4);font-size:18px;cursor:pointer;padding:8px;transition:color .2s,transform .1s;display:flex;align-items:center;justify-content:center;}
+.ctrl-btn:hover{color:rgba(255,255,255,0.8);}
+.ctrl-btn.play{width:46px;height:46px;border-radius:50%;border:.5px solid rgba(175,169,236,0.3);color:#AFA9EC;font-size:16px;}
+.ctrl-btn.play:hover{background:rgba(83,74,183,0.2);color:#F0EEF8;}
+.icon{width:20px;height:20px;fill:currentColor;}
+.transition-overlay{position:fixed;inset:0;z-index:100;background:#0D0A08;opacity:0;pointer-events:none;transition:opacity .8s ease;}
+.transition-overlay.show{opacity:1;}
+.now-playing{position:absolute;bottom:0;left:0;right:0;text-align:center;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.15);padding-bottom:2px;}
+</style>
+</head>
+<body>
+<div class="bg-blur"></div>
+<div class="transition-overlay" id="overlay"></div>
+<div class="screen">
+  <div class="topbar">
+    <div class="menu-icon"><span></span><span></span><span></span></div>
+    <div class="topbar-center">
+      <div class="barcode-bars" id="barcodeEl"></div>
+      <div class="library-name">DONGSAN LIBRARY</div>
+      <div class="program-title">FLIP &amp; PLAY 3F</div>
+    </div>
+    <div class="topbar-right"><div class="live-dot"></div><span id="clockEl"></span></div>
+  </div>
+  <div class="main">
+    <div class="col-left">
+      <div class="book-intro">
+        <div>
+          <div class="section-label">BOOK INTRO</div>
+          <div class="book-intro-title" id="introTitle">—</div>
+          <div class="book-intro-author" id="introAuthor">—</div>
+        </div>
+        <div class="book-intro-divider"></div>
+        <div class="book-quote"><span class="quote-mark">"</span><span id="introQuote"></span></div>
+      </div>
+    </div>
+    <div class="col-center">
+      <div class="vinyl-wrap">
+        <div class="book-cover-placeholder" id="bookCoverEl">
+          <div class="book-cover-placeholder-text">
+            <div class="placeholder-title" id="coverTitle"></div>
+            <div class="placeholder-author" id="coverAuthor"></div>
+          </div>
+        </div>
+        <div class="vinyl" id="vinylEl"></div>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="curator-row">
+        <div class="curator-avatar">👤</div>
+        <div><div class="curator-label">CURATED BY</div><div class="curator-name" id="curatorName">—</div></div>
+      </div>
+      <div class="track-list-wrap" id="trackListEl"></div>
+      <div class="reason-box">
+        <div class="reason-header"><div class="reason-icon">+</div><div class="reason-label">선정 이유</div></div>
+        <div class="reason-text" id="reasonText">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-bar">
+    <div class="progress-wrap">
+      <div class="time-label" id="timeEl">0:00</div>
+      <div class="progress-track" onclick="seekTo(event)"><div class="progress-fill" id="progressEl"></div></div>
+      <div class="time-label end" id="durationEl">0:00</div>
+    </div>
+    <div class="controls">
+      <button class="ctrl-btn" onclick="prevCuration()"><svg class="icon" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+      <button class="ctrl-btn play" id="playBtn" onclick="togglePlay()"><svg class="icon" id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+      <button class="ctrl-btn" onclick="nextCuration()"><svg class="icon" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2-8.14 5.5 3.64L8 17V9.86zM16 6h2v12h-2z"/></svg></button>
+    </div>
+    <div class="now-playing">NOW PLAYING IN 3F</div>
+  </div>
+</div>
+<script>
+const curations = ${curationsJson};
+let curIdx=0,trackIdx=0,elapsed=0,isPlaying=false,timer=null;
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function loadCuration(ci){
+  const c=curations[ci];
+  document.getElementById('introTitle').textContent=c.book.title;
+  document.getElementById('introAuthor').textContent=c.book.author+' · '+c.book.publisher;
+  document.getElementById('introQuote').textContent=c.quote;
+  document.getElementById('coverTitle').textContent=c.book.title;
+  document.getElementById('coverAuthor').textContent=c.book.author;
+  document.getElementById('curatorName').textContent=c.curator;
+  document.getElementById('reasonText').textContent=c.reason;
+  renderTracks(c,0);elapsed=0;updateProgress(c.tracks[0]);
+}
+function renderTracks(c,ai){
+  document.getElementById('trackListEl').innerHTML=c.tracks.map((t,i)=>'<div class="track-row '+(i===ai?'active':'')+'" onclick="jumpToTrack('+i+')"><div class="track-thumb '+(i===ai?'active-thumb':'')+'"><span class="track-icon" style="font-size:16px;color:rgba(255,255,255,0.2)">♪</span><div class="playing-bars"><div class="playing-bar"></div><div class="playing-bar"></div><div class="playing-bar"></div><div class="playing-bar"></div></div></div><div class="track-info"><div class="track-name">'+t.name+'</div><div class="track-artist">'+t.artist+'</div></div><div class="track-dur">'+fmt(t.duration)+'</div></div>').join('');
+}
+function updateProgress(t){
+  const pct=t?(elapsed/t.duration)*100:0;
+  document.getElementById('progressEl').style.width=Math.min(pct,100)+'%';
+  document.getElementById('timeEl').textContent=fmt(elapsed);
+  document.getElementById('durationEl').textContent=t?fmt(t.duration):'0:00';
+}
+function tick(){
+  const c=curations[curIdx],t=c.tracks[trackIdx];
+  elapsed++;updateProgress(t);
+  if(elapsed>=t.duration){elapsed=0;trackIdx++;
+    if(trackIdx>=c.tracks.length){nextCuration();}
+    else{renderTracks(c,trackIdx);updateProgress(c.tracks[trackIdx]);}
+  }
+}
+function togglePlay(){
+  if(isPlaying){clearInterval(timer);isPlaying=false;document.getElementById('playIcon').innerHTML='<path d="M8 5v14l11-7z"/>';document.getElementById('vinylEl').classList.add('paused');}
+  else{timer=setInterval(tick,1000);isPlaying=true;document.getElementById('playIcon').innerHTML='<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';document.getElementById('vinylEl').classList.remove('paused');}
+}
+function jumpToTrack(i){const c=curations[curIdx];trackIdx=i;elapsed=0;renderTracks(c,i);updateProgress(c.tracks[i]);}
+function nextCuration(){
+  const ov=document.getElementById('overlay');ov.classList.add('show');
+  clearInterval(timer);isPlaying=false;
+  setTimeout(()=>{curIdx=(curIdx+1)%curations.length;trackIdx=0;elapsed=0;loadCuration(curIdx);ov.classList.remove('show');document.getElementById('playIcon').innerHTML='<path d="M8 5v14l11-7z"/>';document.getElementById('vinylEl').classList.add('paused');},800);
+}
+function prevCuration(){
+  const ov=document.getElementById('overlay');ov.classList.add('show');
+  clearInterval(timer);isPlaying=false;
+  setTimeout(()=>{curIdx=(curIdx-1+curations.length)%curations.length;trackIdx=0;elapsed=0;loadCuration(curIdx);ov.classList.remove('show');document.getElementById('playIcon').innerHTML='<path d="M8 5v14l11-7z"/>';document.getElementById('vinylEl').classList.add('paused');},800);
+}
+function seekTo(e){const t=curations[curIdx].tracks[trackIdx];const r=e.currentTarget.getBoundingClientRect();elapsed=Math.floor(((e.clientX-r.left)/r.width)*t.duration);updateProgress(t);}
+function buildBarcode(){const el=document.getElementById('barcodeEl');[2,1,3,1,2,1,1,2,3,1,2,1,1,3,1,2,1,2,1,1,3,2,1,1,2,3,1,2].forEach((w,i)=>{const b=document.createElement('span');b.style.width=(w*2)+'px';b.style.height=(i%5===0?22:16)+'px';el.appendChild(b);});}
+function updateClock(){const n=new Date();document.getElementById('clockEl').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');}
+buildBarcode();updateClock();setInterval(updateClock,10000);loadCuration(0);
+<\/script>
+</body>
+</html>`;
+  }
+
+  // Init
+  updateStats();
+  renderTable();
+</script>
+</body>
+</html>

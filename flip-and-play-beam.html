@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLIP & PLAY 3F — 재생</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  body{
+    background:#0D0A08;
+    color:#F0EEF8;
+    font-family:'Noto Sans KR',sans-serif;
+    width:100vw;height:100vh;
+    overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+
+  /* BG blur layer */
+  .bg-blur{
+    position:fixed;inset:0;z-index:0;
+    background:linear-gradient(135deg,#1A1210 0%,#0D0A08 50%,#12100E 100%);
+  }
+
+  .bg-blur::after{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(ellipse at 30% 50%,rgba(83,74,183,0.08) 0%,transparent 60%),
+               radial-gradient(ellipse at 70% 50%,rgba(139,90,43,0.06) 0%,transparent 60%);
+  }
+
+  /* Layout */
+  .screen{
+    position:relative;z-index:1;
+    display:flex;flex-direction:column;
+    width:100%;height:100%;
+  }
+
+  /* Top bar */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 28px 12px;
+    border-bottom:.5px solid rgba(255,255,255,0.06);
+    flex-shrink:0;
+  }
+
+  .menu-icon{
+    width:32px;height:24px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    cursor:pointer;opacity:.5;
+  }
+
+  .menu-icon span{display:block;height:1.5px;background:#F0EEF8;border-radius:2px;}
+
+  .topbar-center{text-align:center;}
+
+  .barcode{
+    font-family:'DM Mono',monospace;
+    font-size:9px;
+    letter-spacing:4px;
+    color:rgba(255,255,255,0.3);
+    margin-bottom:2px;
+    display:flex;align-items:center;justify-content:center;gap:1px;
+  }
+
+  .barcode-bars{display:flex;gap:1px;align-items:center;margin-bottom:3px;}
+  .barcode-bars span{display:inline-block;background:rgba(255,255,255,0.5);border-radius:0.5px;}
+
+  .library-name{
+    font-family:'DM Mono',monospace;
+    font-size:9px;letter-spacing:5px;
+    color:rgba(255,255,255,0.35);
+    margin-bottom:4px;
+  }
+
+  .program-title{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:28px;letter-spacing:3px;
+    color:#F0EEF8;line-height:1;
+  }
+
+  .topbar-right{
+    display:flex;align-items:center;gap:8px;
+    font-family:'DM Mono',monospace;
+    font-size:10px;color:rgba(255,255,255,0.3);
+    letter-spacing:1px;
+  }
+
+  .live-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:#AFA9EC;
+    animation:pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+  /* Main content */
+  .main{
+    display:flex;flex:1;gap:0;overflow:hidden;
+    padding:16px 28px;
+  }
+
+  /* Left: 책 소개 */
+  .col-left{
+    width:22%;
+    display:flex;flex-direction:column;
+    gap:12px;
+    padding-right:20px;
+  }
+
+  .section-label{
+    font-family:'DM Mono',monospace;
+    font-size:9px;letter-spacing:2px;
+    color:rgba(255,255,255,0.25);
+    margin-bottom:6px;
+  }
+
+  .book-intro{
+    flex:1;
+    background:rgba(255,255,255,0.04);
+    border:.5px solid rgba(255,255,255,0.08);
+    border-radius:10px;
+    padding:16px;
+    display:flex;flex-direction:column;
+    gap:10px;
+  }
+
+  .book-intro-title{
+    font-size:13px;font-weight:700;
+    color:#F0EEF8;line-height:1.4;
+  }
+
+  .book-intro-author{
+    font-size:11px;color:rgba(255,255,255,0.4);
+    font-family:'DM Mono',monospace;
+  }
+
+  .book-intro-divider{
+    height:.5px;background:rgba(255,255,255,0.08);
+  }
+
+  .book-quote{
+    font-size:12px;
+    color:rgba(255,255,255,0.6);
+    line-height:1.9;
+    flex:1;
+    font-style:italic;
+    word-break:keep-all;
+  }
+
+  .quote-mark{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:36px;
+    color:rgba(83,74,183,0.3);
+    line-height:0.8;
+    display:block;
+    margin-bottom:4px;
+  }
+
+  /* Center: 책 표지 + 바이닐 */
+  .col-center{
+    flex:1;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+
+  .vinyl-wrap{
+    position:relative;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* Vinyl record */
+  .vinyl{
+    width:220px;height:220px;
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 50%,#1a1a1a 0%,#1a1a1a 12%,transparent 12%),
+      repeating-radial-gradient(circle at 50%,#111 0px,#111 2px,#1a1a1a 2px,#1a1a1a 6px);
+    border:2px solid #2a2a2a;
+    position:absolute;
+    right:-60px;
+    animation:spin 8s linear infinite;
+    box-shadow:inset 0 0 40px rgba(0,0,0,0.8);
+  }
+
+  .vinyl::after{
+    content:'';
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    width:30px;height:30px;
+    border-radius:50%;
+    background:#222;
+    border:1px solid #333;
+  }
+
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+  .vinyl.paused{animation-play-state:paused;}
+
+  /* Book cover */
+  .book-cover-wrap{
+    width:200px;
+    position:relative;z-index:2;
+    filter:drop-shadow(0 20px 40px rgba(0,0,0,0.6));
+  }
+
+  .book-cover-img{
+    width:100%;
+    border-radius:4px;
+    display:block;
+    aspect-ratio:2/3;
+    object-fit:cover;
+    background:#1E1B30;
+  }
+
+  .book-cover-placeholder{
+    width:200px;
+    aspect-ratio:2/3;
+    background:linear-gradient(135deg,#1E1B30,#141220);
+    border-radius:4px;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;z-index:2;
+    border:.5px solid rgba(83,74,183,0.2);
+  }
+
+  .book-cover-placeholder-text{
+    text-align:center;
+    padding:20px;
+  }
+
+  .placeholder-title{
+    font-size:14px;font-weight:700;
+    color:#F0EEF8;line-height:1.4;margin-bottom:8px;
+  }
+
+  .placeholder-author{
+    font-size:11px;color:rgba(255,255,255,0.4);
+    font-family:'DM Mono',monospace;
+  }
+
+  /* Right: 신청자 + 트랙 + 이유 */
+  .col-right{
+    width:30%;
+    display:flex;flex-direction:column;
+    gap:10px;
+    padding-left:20px;
+  }
+
+  .curator-row{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 14px;
+    background:rgba(255,255,255,0.04);
+    border:.5px solid rgba(255,255,255,0.08);
+    border-radius:8px;
+  }
+
+  .curator-avatar{
+    width:32px;height:32px;
+    border-radius:50%;
+    background:rgba(83,74,183,0.3);
+    border:.5px solid rgba(83,74,183,0.4);
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;flex-shrink:0;
+  }
+
+  .curator-label{
+    font-size:10px;color:rgba(255,255,255,0.3);
+    font-family:'DM Mono',monospace;letter-spacing:1px;
+  }
+
+  .curator-name{
+    font-size:14px;font-weight:500;color:#F0EEF8;
+  }
+
+  /* Track list */
+  .track-list-wrap{
+    display:flex;flex-direction:column;gap:6px;
+    flex:1;overflow:hidden;
+  }
+
+  .track-row{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;
+    background:rgba(255,255,255,0.04);
+    border:.5px solid rgba(255,255,255,0.06);
+    border-radius:8px;
+    transition:all .3s;
+    cursor:default;
+  }
+
+  .track-row.active{
+    background:rgba(83,74,183,0.15);
+    border-color:rgba(83,74,183,0.3);
+  }
+
+  .track-thumb{
+    width:44px;height:44px;
+    border-radius:6px;
+    background:#1E1B30;
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;
+    color:rgba(255,255,255,0.2);
+    overflow:hidden;
+    position:relative;
+  }
+
+  .track-thumb.active-thumb{
+    background:rgba(83,74,183,0.3);
+  }
+
+  .track-thumb .playing-bars{
+    display:none;
+    gap:2px;align-items:flex-end;height:20px;
+  }
+
+  .track-row.active .track-thumb .playing-bars{display:flex;}
+  .track-row.active .track-thumb .track-icon{display:none;}
+
+  .playing-bar{
+    width:3px;border-radius:2px;
+    background:var(--accent-light,#AFA9EC);
+    animation:barAnim 0.8s ease-in-out infinite;
+  }
+
+  .playing-bar:nth-child(1){height:10px;animation-delay:0s;}
+  .playing-bar:nth-child(2){height:18px;animation-delay:0.15s;}
+  .playing-bar:nth-child(3){height:12px;animation-delay:0.3s;}
+  .playing-bar:nth-child(4){height:16px;animation-delay:0.1s;}
+
+  @keyframes barAnim{0%,100%{transform:scaleY(0.4)}50%{transform:scaleY(1)}}
+
+  .track-info{flex:1;min-width:0;}
+
+  .track-name{
+    font-size:13px;font-weight:500;
+    color:#F0EEF8;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+
+  .track-row.active .track-name{color:#AFA9EC;}
+
+  .track-artist{
+    font-size:11px;color:rgba(255,255,255,0.4);
+    margin-top:2px;
+  }
+
+  .track-dur{
+    font-family:'DM Mono',monospace;
+    font-size:11px;color:rgba(255,255,255,0.25);
+    flex-shrink:0;
+  }
+
+  /* 선정 이유 */
+  .reason-box{
+    background:rgba(255,255,255,0.04);
+    border:.5px solid rgba(255,255,255,0.08);
+    border-radius:8px;
+    padding:12px 14px;
+  }
+
+  .reason-header{
+    display:flex;align-items:center;gap:6px;
+    margin-bottom:6px;
+  }
+
+  .reason-icon{
+    width:16px;height:16px;
+    border-radius:50%;
+    border:.5px solid rgba(175,169,236,0.4);
+    display:flex;align-items:center;justify-content:center;
+    font-size:9px;color:#AFA9EC;flex-shrink:0;
+  }
+
+  .reason-label{
+    font-size:10px;font-weight:500;
+    color:rgba(255,255,255,0.5);
+    letter-spacing:.5px;
+  }
+
+  .reason-text{
+    font-size:12px;
+    color:rgba(255,255,255,0.55);
+    line-height:1.7;
+    word-break:keep-all;
+  }
+
+  /* Bottom: 진행바 + 컨트롤 */
+  .bottom-bar{
+    flex-shrink:0;
+    padding:10px 28px 18px;
+    border-top:.5px solid rgba(255,255,255,0.06);
+  }
+
+  /* Progress */
+  .progress-wrap{
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:12px;
+  }
+
+  .time-label{
+    font-family:'DM Mono',monospace;
+    font-size:11px;color:rgba(255,255,255,0.3);
+    min-width:36px;
+  }
+
+  .time-label.end{text-align:right;}
+
+  .progress-track{
+    flex:1;height:3px;
+    background:rgba(255,255,255,0.1);
+    border-radius:3px;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .progress-fill{
+    height:100%;
+    background:#AFA9EC;
+    border-radius:3px;
+    transition:width .5s linear;
+    width:0%;
+  }
+
+  /* Controls */
+  .controls{
+    display:flex;align-items:center;justify-content:center;
+    gap:32px;
+  }
+
+  .ctrl-btn{
+    background:none;border:none;
+    color:rgba(255,255,255,0.4);
+    font-size:18px;cursor:pointer;
+    padding:8px;
+    transition:color .2s,transform .1s;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  .ctrl-btn:hover{color:rgba(255,255,255,0.8);}
+  .ctrl-btn:active{transform:scale(0.9);}
+
+  .ctrl-btn.play{
+    width:46px;height:46px;
+    border-radius:50%;
+    border:.5px solid rgba(175,169,236,0.3);
+    color:#AFA9EC;
+    font-size:16px;
+  }
+
+  .ctrl-btn.play:hover{
+    background:rgba(83,74,183,0.2);
+    color:#F0EEF8;
+  }
+
+  /* SVG icons */
+  .icon{width:20px;height:20px;fill:currentColor;}
+  .icon-sm{width:16px;height:16px;fill:currentColor;}
+
+  /* Transition overlay */
+  .transition-overlay{
+    position:fixed;inset:0;z-index:100;
+    background:#0D0A08;
+    opacity:0;pointer-events:none;
+    transition:opacity .8s ease;
+  }
+
+  .transition-overlay.show{opacity:1;}
+
+  /* Now playing ticker */
+  .now-playing{
+    position:absolute;
+    bottom:0;left:0;right:0;
+    text-align:center;
+    font-family:'DM Mono',monospace;
+    font-size:9px;letter-spacing:2px;
+    color:rgba(255,255,255,0.15);
+    padding-bottom:2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blur"></div>
+<div class="transition-overlay" id="overlay"></div>
+
+<div class="screen">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="menu-icon">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="topbar-center">
+      <div class="barcode-bars" id="barcodeEl"></div>
+      <div class="library-name">DONGSAN LIBRARY</div>
+      <div class="program-title">FLIP &amp; PLAY 3F</div>
+    </div>
+    <div class="topbar-right">
+      <div class="live-dot"></div>
+      <span id="clockEl"></span>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Left -->
+    <div class="col-left">
+      <div class="book-intro">
+        <div>
+          <div class="section-label">BOOK INTRO</div>
+          <div class="book-intro-title" id="introTitle">—</div>
+          <div class="book-intro-author" id="introAuthor">—</div>
+        </div>
+        <div class="book-intro-divider"></div>
+        <div class="book-quote">
+          <span class="quote-mark">"</span>
+          <span id="introQuote">책을 선택하면 여기에 인상 깊은 구절이 표시됩니다.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center -->
+    <div class="col-center">
+      <div class="vinyl-wrap">
+        <div class="book-cover-placeholder" id="bookCoverEl">
+          <div class="book-cover-placeholder-text">
+            <div class="placeholder-title" id="coverTitle">채식주의자</div>
+            <div class="placeholder-author" id="coverAuthor">한강</div>
+          </div>
+        </div>
+        <div class="vinyl" id="vinylEl"></div>
+      </div>
+    </div>
+
+    <!-- Right -->
+    <div class="col-right">
+      <div class="curator-row">
+        <div class="curator-avatar">👤</div>
+        <div>
+          <div class="curator-label">CURATED BY</div>
+          <div class="curator-name" id="curatorName">—</div>
+        </div>
+      </div>
+
+      <div class="track-list-wrap" id="trackListEl"></div>
+
+      <div class="reason-box">
+        <div class="reason-header">
+          <div class="reason-icon">+</div>
+          <div class="reason-label">선정 이유</div>
+        </div>
+        <div class="reason-text" id="reasonText">—</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom -->
+  <div class="bottom-bar">
+    <div class="progress-wrap">
+      <div class="time-label" id="timeEl">0:00</div>
+      <div class="progress-track" onclick="seekTo(event)">
+        <div class="progress-fill" id="progressEl"></div>
+      </div>
+      <div class="time-label end" id="durationEl">0:00</div>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl-btn" onclick="prevCuration()" title="이전 큐레이션">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+      </button>
+      <button class="ctrl-btn play" id="playBtn" onclick="togglePlay()">
+        <svg class="icon" id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="ctrl-btn" onclick="nextCuration()" title="다음 큐레이션">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2-8.14 5.5 3.64L8 17V9.86zM16 6h2v12h-2z"/></svg>
+      </button>
+    </div>
+    <div class="now-playing" id="nowPlayingLabel">NOW PLAYING IN 3F</div>
+  </div>
+
+</div>
+
+<script>
+  // ── 큐레이션 데이터 (실제 운영 시 Google Sheets에서 불러오거나 직접 입력) ──
+  const curations = [
+    {
+      curator: '책읽는고양이',
+      book: { title: '채식주의자', author: '한강', publisher: '창비 · 2007' },
+      quote: '"나는 이상하게 될 것이다. 이미 이상해지기 시작했는지도 모른다. 하지만 이 이상함이 나를 자유롭게 한다."',
+      tracks: [
+        { name: 'Blinding Lights', artist: 'The Weeknd', duration: 200 },
+        { name: '아이와 나의 바다', artist: 'IU', duration: 238 },
+        { name: 'drivers license', artist: 'Olivia Rodrigo', duration: 242 },
+      ],
+      reason: '주인공의 내면 흐름이 이 곡들의 분위기와 닮아있다고 생각했어요. 특히 첫 번째 곡은 책 속 긴장감과 잘 어울려요.',
+    },
+    {
+      curator: '음악탐험가',
+      book: { title: '82년생 김지영', author: '조남주', publisher: '민음사 · 2016' },
+      quote: '"누군가의 딸이고 누군가의 아내이고 누군가의 엄마이기 이전에, 김지영은 김지영이었다."',
+      tracks: [
+        { name: 'Celebrity', artist: 'IU', duration: 213 },
+        { name: 'After LIKE', artist: 'IVE', duration: 175 },
+      ],
+      reason: '책이 전하는 메시지와 이 곡들의 당당함이 잘 맞아떨어진다고 생각했어요.',
+    },
+    {
+      curator: '노을읽는사람',
+      book: { title: '봄날의 곰을 그리다', author: '강아지', publisher: '달빛 · 2022' },
+      quote: '"어떤 날은 그냥 멍하니 있어도 괜찮아. 그게 쉬는 거니까."',
+      tracks: [
+        { name: '봄날', artist: 'BTS', duration: 300 },
+        { name: '사랑하기 때문에', artist: '유재하', duration: 253 },
+        { name: '좋은 날', artist: 'IU', duration: 229 },
+      ],
+      reason: '봄날의 따뜻하고 쓸쓸한 감성이 이 책의 분위기와 딱 맞았어요.',
+    },
+  ];
+
+  let curIdx = 0;
+  let trackIdx = 0;
+  let elapsed = 0;
+  let isPlaying = false;
+  let timer = null;
+
+  function fmt(sec) {
+    return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+  }
+
+  function loadCuration(ci) {
+    const c = curations[ci];
+    if (!c) return;
+
+    document.getElementById('introTitle').textContent = c.book.title;
+    document.getElementById('introAuthor').textContent = c.book.author + ' · ' + c.book.publisher;
+    document.getElementById('introQuote').textContent = c.quote;
+    document.getElementById('coverTitle').textContent = c.book.title;
+    document.getElementById('coverAuthor').textContent = c.book.author;
+    document.getElementById('curatorName').textContent = c.curator;
+    document.getElementById('reasonText').textContent = c.reason;
+
+    renderTracks(c, 0);
+    elapsed = 0;
+    updateProgress(c.tracks[0]);
+  }
+
+  function renderTracks(c, activeIdx) {
+    const el = document.getElementById('trackListEl');
+    el.innerHTML = c.tracks.map((t, i) => `
+      <div class="track-row ${i === activeIdx ? 'active' : ''}" onclick="jumpToTrack(${i})">
+        <div class="track-thumb ${i === activeIdx ? 'active-thumb' : ''}">
+          <span class="track-icon" style="font-size:16px;color:rgba(255,255,255,0.2)">♪</span>
+          <div class="playing-bars">
+            <div class="playing-bar"></div>
+            <div class="playing-bar"></div>
+            <div class="playing-bar"></div>
+            <div class="playing-bar"></div>
+          </div>
+        </div>
+        <div class="track-info">
+          <div class="track-name">${t.name}</div>
+          <div class="track-artist">${t.artist}</div>
+        </div>
+        <div class="track-dur">${fmt(t.duration)}</div>
+      </div>
+    `).join('');
+  }
+
+  function updateProgress(track) {
+    const pct = track ? (elapsed / track.duration) * 100 : 0;
+    document.getElementById('progressEl').style.width = Math.min(pct, 100) + '%';
+    document.getElementById('timeEl').textContent = fmt(elapsed);
+    document.getElementById('durationEl').textContent = track ? fmt(track.duration) : '0:00';
+  }
+
+  function tick() {
+    const c = curations[curIdx];
+    const track = c.tracks[trackIdx];
+    elapsed++;
+    updateProgress(track);
+
+    if (elapsed >= track.duration) {
+      elapsed = 0;
+      trackIdx++;
+      if (trackIdx >= c.tracks.length) {
+        // 다음 큐레이션으로
+        nextCuration();
+      } else {
+        renderTracks(c, trackIdx);
+        updateProgress(c.tracks[trackIdx]);
+      }
+    }
+  }
+
+  function togglePlay() {
+    if (isPlaying) {
+      clearInterval(timer);
+      isPlaying = false;
+      document.getElementById('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>';
+      document.getElementById('vinylEl').classList.add('paused');
+    } else {
+      timer = setInterval(tick, 1000);
+      isPlaying = true;
+      document.getElementById('playIcon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      document.getElementById('vinylEl').classList.remove('paused');
+    }
+  }
+
+  function jumpToTrack(i) {
+    const c = curations[curIdx];
+    if (i < 0 || i >= c.tracks.length) return;
+    trackIdx = i;
+    elapsed = 0;
+    renderTracks(c, trackIdx);
+    updateProgress(c.tracks[trackIdx]);
+  }
+
+  function nextCuration() {
+    const overlay = document.getElementById('overlay');
+    overlay.classList.add('show');
+    clearInterval(timer);
+    isPlaying = false;
+    setTimeout(() => {
+      curIdx = (curIdx + 1) % curations.length;
+      trackIdx = 0;
+      elapsed = 0;
+      loadCuration(curIdx);
+      overlay.classList.remove('show');
+      document.getElementById('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>';
+      document.getElementById('vinylEl').classList.add('paused');
+    }, 800);
+  }
+
+  function prevCuration() {
+    const overlay = document.getElementById('overlay');
+    overlay.classList.add('show');
+    clearInterval(timer);
+    isPlaying = false;
+    setTimeout(() => {
+      curIdx = (curIdx - 1 + curations.length) % curations.length;
+      trackIdx = 0;
+      elapsed = 0;
+      loadCuration(curIdx);
+      overlay.classList.remove('show');
+      document.getElementById('playIcon').innerHTML = '<path d="M8 5v14l11-7z"/>';
+      document.getElementById('vinylEl').classList.add('paused');
+    }, 800);
+  }
+
+  function seekTo(e) {
+    const track = curations[curIdx].tracks[trackIdx];
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    elapsed = Math.floor(pct * track.duration);
+    updateProgress(track);
+  }
+
+  // 바코드 생성
+  function buildBarcode() {
+    const el = document.getElementById('barcodeEl');
+    const widths = [2,1,3,1,2,1,1,2,3,1,2,1,1,3,1,2,1,2,1,1,3,2,1,1,2,3,1,2];
+    widths.forEach((w, i) => {
+      const bar = document.createElement('span');
+      bar.style.width = (w * 2) + 'px';
+      bar.style.height = (i % 5 === 0 ? 22 : 16) + 'px';
+      el.appendChild(bar);
+    });
+  }
+
+  // 시계
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('clockEl').textContent = h + ':' + m;
+  }
+
+  // Init
+  buildBarcode();
+  updateClock();
+  setInterval(updateClock, 10000);
+  loadCuration(0);
+</script>
+</body>
+</html>

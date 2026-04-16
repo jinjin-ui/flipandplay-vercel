@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLIP & PLAY 3F — 신청</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+  :root {
+    --bg:#0D0D0D; --bg2:#141220; --bg3:#1E1B30;
+    --accent:#7F77DD; --accent-light:#AFA9EC; --accent-dark:#534AB7;
+    --text:#F0EEF8; --text-muted:#888; --text-dim:#444;
+    --border:#2A2A2A; --border-accent:#3C3489;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:80px 80px;opacity:.2;pointer-events:none;z-index:0;}
+  .wrap{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:0 24px 100px;}
+  header{padding:36px 0;border-bottom:.5px solid var(--border);margin-bottom:36px;display:flex;align-items:flex-end;justify-content:space-between;}
+  .logo-sub{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--text-muted);margin-bottom:6px;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:2px;line-height:1;}
+  .logo span{color:var(--accent-light);}
+  .header-right{text-align:right;}
+  .header-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent-light);letter-spacing:1px;background:var(--bg3);border:.5px solid var(--border-accent);border-radius:4px;padding:5px 10px;display:inline-block;margin-bottom:6px;}
+  .header-desc{font-size:11px;color:var(--text-dim);line-height:1.6;}
+
+  /* Step indicator */
+  .progress-wrap{margin-bottom:40px;}
+  .step-indicator{display:flex;align-items:center;}
+  .step-node{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .step-circle{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--text-dim);transition:all .3s;flex-shrink:0;}
+  .step-node.done .step-circle{background:var(--accent-dark);border-color:var(--accent-dark);color:#fff;}
+  .step-node.active .step-circle{background:var(--accent-dark);border-color:var(--accent-light);color:#fff;box-shadow:0 0 0 3px rgba(83,74,183,.3);}
+  .step-label{font-size:13px;color:var(--text-dim);white-space:nowrap;transition:color .3s;}
+  .step-node.active .step-label{color:var(--text);font-weight:500;}
+  .step-node.done .step-label{color:var(--accent-dark);}
+  .step-line{flex:1;height:1px;background:var(--border);margin:0 10px;min-width:24px;transition:background .3s;}
+  .step-line.done{background:var(--accent-dark);}
+
+  .view{animation:fadeUp .3s ease both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+  .block{margin-bottom:28px;}
+  .block-label{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .block-num{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--accent-dark);line-height:1;min-width:24px;}
+  .block-title{font-size:15px;font-weight:500;}
+  .block-desc{font-size:12px;color:var(--text-muted);margin-top:2px;line-height:1.5;}
+  .divider{border:none;border-top:.5px solid var(--border);margin:28px 0;}
+
+  .toggle-group{display:flex;gap:8px;}
+  .toggle-btn{flex:1;padding:14px;background:var(--bg2);border:.5px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:14px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;text-align:center;transition:all .2s;}
+  .toggle-btn.selected{border-color:var(--accent-dark);color:var(--accent-light);background:var(--bg3);}
+  .toggle-btn-sub{font-size:11px;color:var(--text-dim);margin-top:3px;}
+  .toggle-btn.selected .toggle-btn-sub{color:var(--accent-dark);}
+  .cond-fields{display:none;margin-top:10px;animation:fadeUp .2s ease;}
+  .cond-fields.show{display:block;}
+
+  .input-row{display:flex;gap:8px;margin-bottom:8px;}
+  .inp{flex:1;background:var(--bg2);border:.5px solid var(--border);border-radius:6px;padding:12px 16px;color:var(--text);font-size:14px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;width:100%;}
+  .inp:focus{border-color:var(--accent-dark);}
+  .inp::placeholder{color:var(--text-dim);font-size:13px;}
+  textarea.inp{resize:vertical;min-height:100px;line-height:1.7;}
+  .char-count{text-align:right;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);margin-top:4px;}
+
+  .search-row{display:flex;gap:8px;margin-bottom:10px;}
+  .search-btn{background:var(--accent-dark);border:none;border-radius:6px;padding:12px 18px;color:#fff;font-size:13px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;transition:background .2s;}
+  .search-btn:hover{background:var(--accent);}
+
+  .results-box{display:none;background:var(--bg2);border:.5px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:10px;max-height:260px;overflow-y:auto;}
+  .result-item{display:flex;align-items:center;gap:12px;padding:11px 14px;cursor:pointer;border-bottom:.5px solid var(--border);transition:background .15s;}
+  .result-item:last-child{border-bottom:none;}
+  .result-item:hover{background:var(--bg3);}
+  .result-thumb{width:36px;height:52px;border-radius:2px;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-dim);}
+  .result-thumb-round{width:36px;height:36px;border-radius:50%;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-dim);}
+  .result-info{flex:1;min-width:0;}
+  .result-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .result-sub{font-size:11px;color:var(--text-muted);margin-top:2px;}
+  .result-dur{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);flex-shrink:0;}
+
+  .book-card{display:none;background:var(--bg2);border:.5px solid var(--border-accent);border-radius:8px;padding:16px;gap:14px;align-items:flex-start;position:relative;}
+  .book-card.show{display:flex;animation:fadeUp .2s ease;}
+  .book-cover-wrap{width:54px;height:78px;border-radius:3px;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text-dim);}
+  .book-info{flex:1;}
+  .book-title-el{font-size:15px;font-weight:500;margin-bottom:4px;line-height:1.4;}
+  .book-author-el{font-size:12px;color:var(--text-muted);margin-bottom:2px;}
+  .book-pub-el{font-size:11px;color:var(--text-dim);}
+  .selected-tag{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:.5px solid var(--border-accent);border-radius:3px;padding:3px 8px;font-size:10px;color:var(--accent-light);font-family:'DM Mono',monospace;margin-top:8px;}
+  .remove-btn{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:4px;transition:color .15s;}
+  .remove-btn:hover{color:#E24B4A;}
+
+  .file-upload-area{background:var(--bg2);border:.5px dashed var(--border);border-radius:8px;padding:22px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;display:block;position:relative;}
+  .file-upload-area:hover{border-color:var(--accent-dark);background:var(--bg3);}
+  .file-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .file-icon-big{font-size:26px;margin-bottom:8px;opacity:.5;}
+  .file-upload-title{font-size:13px;color:var(--text-muted);margin-bottom:3px;}
+  .file-upload-sub{font-size:11px;color:var(--text-dim);}
+  .file-preview-wrap{display:none;margin-top:10px;position:relative;}
+  .file-preview-wrap.show{display:block;}
+  .file-preview-img{width:100%;max-height:180px;object-fit:contain;border-radius:6px;border:.5px solid var(--border-accent);}
+  .file-preview-name{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent-light);margin-top:6px;text-align:center;}
+  .file-remove-btn{position:absolute;top:6px;right:6px;background:rgba(13,13,13,.85);border:.5px solid var(--border);border-radius:4px;color:var(--text-muted);font-size:12px;padding:3px 8px;cursor:pointer;transition:color .15s;}
+  .file-remove-btn:hover{color:#E24B4A;}
+
+  /* Step2 선택된 도서 배너 */
+  .selected-book-banner{display:flex;gap:16px;align-items:center;background:var(--bg2);border:.5px solid var(--border-accent);border-radius:10px;padding:18px 20px;margin-bottom:32px;position:relative;overflow:hidden;}
+  .selected-book-banner::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-dark);border-radius:10px 0 0 10px;}
+  .banner-cover{width:64px;height:92px;border-radius:4px;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--text-dim);border:.5px solid var(--border);}
+  .banner-info{flex:1;display:flex;flex-direction:column;gap:4px;}
+  .banner-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent-dark);letter-spacing:1.5px;margin-bottom:2px;}
+  .banner-title{font-size:18px;font-weight:700;color:var(--text);line-height:1.3;}
+  .banner-author{font-size:13px;color:var(--text-muted);}
+  .banner-publisher{font-size:11px;color:var(--text-dim);}
+
+  .track-count{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:8px;}
+  .track-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+  .track-item{display:flex;align-items:center;gap:10px;background:var(--bg2);border:.5px solid var(--border-accent);border-radius:6px;padding:10px 12px;animation:fadeUp .2s ease;}
+  .track-num{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent-dark);min-width:18px;line-height:1;}
+  .track-thumb-el{width:34px;height:34px;border-radius:50%;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-dim);}
+  .track-info{flex:1;min-width:0;}
+  .track-name-el{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .track-artist-el{font-size:11px;color:var(--text-muted);margin-top:1px;}
+  .track-dur-el{font-family:'DM Mono',monospace;font-size:12px;color:var(--accent-light);flex-shrink:0;}
+  .track-remove-btn{background:none;border:none;color:var(--text-dim);font-size:13px;cursor:pointer;padding:3px;transition:color .15s;}
+  .track-remove-btn:hover{color:#E24B4A;}
+
+  .total-bar{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:.5px solid var(--border);border-radius:6px;padding:10px 14px;margin-top:10px;}
+  .total-label{font-size:12px;color:var(--text-muted);}
+  .total-val{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent-light);}
+
+  .notice{background:var(--bg3);border:.5px solid var(--border-accent);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--accent-light);margin-bottom:12px;font-family:'DM Mono',monospace;line-height:1.5;}
+
+  .next-btn,.submit-btn{width:100%;background:var(--accent-dark);border:none;border-radius:6px;padding:16px;color:#fff;font-size:15px;font-weight:500;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:background .2s,transform .1s;margin-top:28px;letter-spacing:.3px;}
+  .next-btn:hover,.submit-btn:hover{background:var(--accent);}
+  .next-btn:active,.submit-btn:active{transform:scale(.99);}
+  .next-btn:disabled,.submit-btn:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed;transform:none;}
+  .back-btn{background:none;border:.5px solid var(--border);border-radius:6px;padding:12px;color:var(--text-muted);font-size:13px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;width:100%;margin-top:8px;transition:border-color .2s,color .2s;}
+  .back-btn:hover{border-color:var(--accent-dark);color:var(--text);}
+  .bottom-note{margin-top:16px;text-align:center;font-size:12px;color:var(--text-dim);line-height:1.7;}
+  .bottom-note span{color:var(--accent-light);}
+
+  .success-view{display:none;text-align:center;padding:80px 0;}
+  .success-icon{width:60px;height:60px;border-radius:50%;background:var(--bg3);border:.5px solid var(--border-accent);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 24px;}
+  .success-title{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:var(--accent-light);margin-bottom:14px;}
+  .success-desc{font-size:14px;color:var(--text-muted);line-height:1.9;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="logo-sub">DONGSAN LIBRARY · 3F</div>
+      <div class="logo">FLIP <span>&</span> PLAY</div>
+    </div>
+    <div class="header-right">
+      <div class="header-tag">MUSIC CURATION</div>
+      <div class="header-desc">고범전자정보실 · X-SPACE<br>매일 15:00 – 16:00</div>
+    </div>
+  </header>
+
+  <div class="progress-wrap">
+    <div class="step-indicator">
+      <div class="step-node active" id="sn1">
+        <div class="step-circle" id="sc1">1</div>
+        <div class="step-label">도서 선택</div>
+      </div>
+      <div class="step-line" id="sl1"></div>
+      <div class="step-node" id="sn2">
+        <div class="step-circle" id="sc2">2</div>
+        <div class="step-label">음악 선택</div>
+      </div>
+      <div class="step-line" id="sl2"></div>
+      <div class="step-node" id="sn3">
+        <div class="step-circle" id="sc3">3</div>
+        <div class="step-label">제출</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="step1View" class="view">
+    <div class="block">
+      <div class="block-label">
+        <div class="block-num">1</div>
+        <div>
+          <div class="block-title">참여자 이름 공개 여부</div>
+          <div class="block-desc">빔프로젝터 화면에 표시되는 방식을 선택해주세요.</div>
+        </div>
+      </div>
+      <div class="toggle-group">
+        <button class="toggle-btn" id="btnAnon" onclick="selectAnon('anon')">익명<div class="toggle-btn-sub">별명으로 표시</div></button>
+        <button class="toggle-btn" id="btnReal" onclick="selectAnon('real')">실명<div class="toggle-btn-sub">이름 + 학과 표시</div></button>
+      </div>
+      <div class="cond-fields" id="fieldAnon">
+        <input class="inp" id="nickname" placeholder="별명을 입력해주세요 (예: 책읽는고양이)" type="text"/>
+      </div>
+      <div class="cond-fields" id="fieldReal">
+        <div class="input-row">
+          <input class="inp" id="realName" placeholder="이름" type="text" style="max-width:150px;flex:none"/>
+          <input class="inp" id="realDept" placeholder="학과 (예: 경영학과 3학년)" type="text"/>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider"/>
+
+    <div class="block">
+      <div class="block-label">
+        <div class="block-num">2</div>
+        <div>
+          <div class="block-title">도서 선택</div>
+          <div class="block-desc">대출한 도서 1권을 검색해서 선택해주세요.</div>
+        </div>
+      </div>
+      <div class="notice">📚 알라딘 도서 검색 — 책 제목 또는 저자명을 입력하세요.</div>
+      <div class="search-row">
+        <input class="inp" id="bookSearch" placeholder="책 제목 또는 저자명..." type="text"/>
+        <button class="search-btn" onclick="searchBook()">검색</button>
+      </div>
+      <div class="results-box" id="bookResults"></div>
+      <div class="book-card" id="bookCard">
+        <div class="book-cover-wrap">📖</div>
+        <div class="book-info">
+          <div class="book-title-el" id="bookTitleEl"></div>
+          <div class="book-author-el" id="bookAuthorEl"></div>
+          <div class="book-pub-el" id="bookPubEl"></div>
+          <div class="selected-tag">✓ 선택됨</div>
+        </div>
+        <button class="remove-btn" onclick="removeBook()">✕</button>
+      </div>
+    </div>
+
+    <hr class="divider"/>
+
+    <div class="block">
+      <div class="block-label">
+        <div class="block-num">3</div>
+        <div>
+          <div class="block-title">도서 대출 인증</div>
+          <div class="block-desc">도서관 앱 대출 화면 캡처를 첨부해주세요. 관리자 확인용이며 화면에 공개되지 않습니다.</div>
+        </div>
+      </div>
+      <label class="file-upload-area" id="fileArea">
+        <input type="file" id="loanFile" accept="image/*" onchange="handleFile(this)"/>
+        <div class="file-icon-big">📷</div>
+        <div class="file-upload-title">대출 화면 캡처 업로드</div>
+        <div class="file-upload-sub">JPG, PNG · 최대 10MB</div>
+      </label>
+      <div class="file-preview-wrap" id="filePreviewWrap">
+        <img class="file-preview-img" id="filePreviewImg" src="" alt="대출 인증"/>
+        <div class="file-preview-name" id="filePreviewName"></div>
+        <button class="file-remove-btn" onclick="removeFile()">✕ 다시 선택</button>
+      </div>
+    </div>
+
+    <hr class="divider"/>
+
+    <div class="block">
+      <div class="block-label">
+        <div class="block-num">4</div>
+        <div>
+          <div class="block-title">인상 깊은 구절</div>
+          <div class="block-desc">책에서 인상 깊었던 구절이나 소개하고 싶은 내용을 자유롭게 적어주세요. (2~5줄)</div>
+        </div>
+      </div>
+      <textarea class="inp" id="bookQuote" placeholder="예: &quot;그래, 살아남은 것들은 특별하다.&quot; 이 문장을 읽는 순간 뭔가 뭉클했어요."></textarea>
+      <div class="char-count"><span id="quoteCount">0</span>자</div>
+    </div>
+
+    <button class="next-btn" id="nextBtn1" onclick="goStep2()" disabled>다음 단계 →</button>
+    <div class="bottom-note"><span>✨ 선정된 내용은 3F 도서관 화면에 소개됩니다.</span></div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step2View" style="display:none;" class="view">
+
+    <!-- 선택된 도서 배너 -->
+    <div class="selected-book-banner">
+      <div class="banner-cover">📖</div>
+      <div class="banner-info">
+        <div class="banner-label">SELECTED BOOK</div>
+        <div class="banner-title" id="bannerTitle"></div>
+        <div class="banner-author" id="bannerAuthor"></div>
+        <div class="banner-publisher" id="bannerPub"></div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="block-label">
+        <div class="block-num">5</div>
+        <div>
+          <div class="block-title">음악 선택</div>
+          <div class="block-desc">이 책과 어울리는 음악을 1~3곡 선택해주세요.</div>
+        </div>
+      </div>
+      <div class="notice">🎵 Spotify 음악 검색 — 곡명 또는 아티스트명을 입력하세요.</div>
+      <div class="search-row">
+        <input class="inp" id="trackSearch" placeholder="곡명 또는 아티스트명..." type="text"/>
+        <button class="search-btn" onclick="searchTrack()">검색</button>
+      </div>
+      <div class="results-box" id="trackResults"></div>
+      <div class="track-count" id="trackCount">0 / 3곡 선택됨</div>
+      <div class="track-list" id="trackList"></div>
+      <div class="total-bar" id="totalBar" style="display:none;">
+        <div class="total-label">총 재생시간</div>
+        <div class="total-val" id="totalVal"></div>
+      </div>
+    </div>
+
+    <hr class="divider"/>
+
+    <div class="block">
+      <div class="block-label">
+        <div class="block-num">6</div>
+        <div>
+          <div class="block-title">선정 이유</div>
+          <div class="block-desc">이 음악을 선택한 이유 또는 책과 어울린다고 생각한 점을 간단히 적어주세요. (1~2줄)</div>
+        </div>
+      </div>
+      <textarea class="inp" id="reason" placeholder="예: 주인공이 혼자 걷는 장면들이 이 곡의 분위기와 딱 맞는다고 생각했어요." style="min-height:80px;"></textarea>
+      <div class="char-count"><span id="reasonCount">0</span>자</div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitForm()" disabled>큐레이션 신청하기 →</button>
+    <button class="back-btn" onclick="goBack()">← 이전으로</button>
+    <div class="bottom-note"><span>✨ 선정된 내용은 3F 도서관 화면에 소개됩니다.</span></div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-view" id="successView">
+    <div class="success-icon">✓</div>
+    <div class="success-title">신청 완료!</div>
+    <div class="success-desc">
+      큐레이션 신청이 접수되었습니다.<br>
+      관리자 검토 후 선정 시 3층에서 재생됩니다.<br><br>
+      <span style="color:var(--accent-light)">FLIP &amp; PLAY 3F</span>에 참여해주셔서 감사합니다 :)
+    </div>
+  </div>
+</div>
+
+<script>
+  let anonMode=null, selectedBook=null, loanFileData=null, selectedTracks=[];
+
+  // 검색 중 표시용
+  function showSearchLoading(boxId) {
+    const box = document.getElementById(boxId);
+    box.style.display = 'block';
+    box.innerHTML = '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 중...</div>';
+  }
+
+  function selectAnon(mode){
+    anonMode=mode;
+    document.getElementById('btnAnon').classList.toggle('selected',mode==='anon');
+    document.getElementById('btnReal').classList.toggle('selected',mode==='real');
+    document.getElementById('fieldAnon').classList.toggle('show',mode==='anon');
+    document.getElementById('fieldReal').classList.toggle('show',mode==='real');
+    checkStep1();
+  }
+
+  let bookSearchResults = [];
+
+  async function searchBook(){
+    const q=document.getElementById('bookSearch').value.trim();
+    if(!q)return;
+    showSearchLoading('bookResults');
+    try {
+      const res = await fetch(`/api/search-book?q=${encodeURIComponent(q)}`);
+      const books = await res.json();
+      bookSearchResults = books;
+      const box=document.getElementById('bookResults');
+      box.style.display='block';
+      box.innerHTML=books.length
+        ? books.map((b,i)=>`
+            <div class="result-item" onclick="selectBook(${i})">
+              ${b.cover ? `<img src="${b.cover}" class="result-thumb" style="width:36px;height:52px;object-fit:cover;border-radius:2px;">` : '<div class="result-thumb">📖</div>'}
+              <div class="result-info">
+                <div class="result-title">${b.title}</div>
+                <div class="result-sub">${b.author} · ${b.publisher}${b.pubDate ? ' · ' + b.pubDate : ''}</div>
+              </div>
+            </div>`).join('')
+        : '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 결과가 없습니다.</div>';
+    } catch(e) {
+      document.getElementById('bookResults').innerHTML = '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 오류가 발생했습니다.</div>';
+    }
+  }
+
+  function selectBook(idx){
+    selectedBook=bookSearchResults[idx];
+    if(!selectedBook)return;
+    document.getElementById('bookResults').style.display='none';
+    document.getElementById('bookSearch').value='';
+    document.getElementById('bookCard').classList.add('show');
+    document.getElementById('bookTitleEl').textContent=selectedBook.title;
+    document.getElementById('bookAuthorEl').textContent=selectedBook.author;
+    document.getElementById('bookPubEl').textContent=selectedBook.publisher + (selectedBook.pubDate ? ' · ' + selectedBook.pubDate : '');
+    checkStep1();
+  }
+
+  function removeBook(){
+    selectedBook=null;
+    document.getElementById('bookCard').classList.remove('show');
+    checkStep1();
+  }
+
+  function handleFile(input){
+    if(!input.files||!input.files[0])return;
+    const file=input.files[0];
+    loanFileData=file;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      document.getElementById('filePreviewImg').src=e.target.result;
+      document.getElementById('filePreviewName').textContent=file.name;
+      document.getElementById('filePreviewWrap').classList.add('show');
+      document.getElementById('fileArea').style.display='none';
+      checkStep1();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeFile(){
+    loanFileData=null;
+    document.getElementById('filePreviewWrap').classList.remove('show');
+    document.getElementById('fileArea').style.display='block';
+    document.getElementById('loanFile').value='';
+    checkStep1();
+  }
+
+  function checkStep1(){
+    const nameOk=anonMode==='anon'
+      ? document.getElementById('nickname').value.trim().length>0
+      : document.getElementById('realName').value.trim().length>0&&document.getElementById('realDept').value.trim().length>0;
+    const quoteOk=document.getElementById('bookQuote').value.trim().length>=10;
+    document.getElementById('nextBtn1').disabled=!(anonMode&&nameOk&&selectedBook&&loanFileData&&quoteOk);
+  }
+
+  let trackSearchResults = [];
+
+  async function searchTrack(){
+    const q=document.getElementById('trackSearch').value.trim();
+    if(!q)return;
+    if(selectedTracks.length>=3){alert('최대 3곡까지 선택할 수 있습니다.');return;}
+    showSearchLoading('trackResults');
+    try {
+      const res = await fetch(`/api/search-track?q=${encodeURIComponent(q)}`);
+      const tracks = await res.json();
+      trackSearchResults = tracks;
+      const box=document.getElementById('trackResults');
+      box.style.display='block';
+      box.innerHTML=tracks.length
+        ? tracks.map((t,i)=>`
+            <div class="result-item" onclick="addTrack(${i})">
+              ${t.thumb ? `<img src="${t.thumb}" class="result-thumb-round" style="width:36px;height:36px;object-fit:cover;border-radius:50%;">` : '<div class="result-thumb-round">♪</div>'}
+              <div class="result-info">
+                <div class="result-title">${t.name}</div>
+                <div class="result-sub">${t.artist}</div>
+              </div>
+              <div class="result-dur">${fmt(t.duration)}</div>
+            </div>`).join('')
+        : '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 결과가 없습니다.</div>';
+    } catch(e) {
+      document.getElementById('trackResults').innerHTML = '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 오류가 발생했습니다.</div>';
+    }
+  }
+
+  function addTrack(idx){
+    if(selectedTracks.length>=3){alert('최대 3곡까지 선택할 수 있습니다.');return;}
+    const track=trackSearchResults[idx];
+    if(!track)return;
+    if(selectedTracks.find(t=>t.id===track.id)){alert('이미 추가된 곡입니다.');return;}
+    selectedTracks.push(track);
+    document.getElementById('trackResults').style.display='none';
+    document.getElementById('trackSearch').value='';
+    renderTracks();
+    checkStep2();
+  }
+
+  function removeTrack(id){
+    selectedTracks=selectedTracks.filter(t=>t.id!==id);
+    renderTracks();
+    checkStep2();
+  }
+
+  function renderTracks(){
+    document.getElementById('trackCount').textContent=`${selectedTracks.length} / 3곡 선택됨`;
+    document.getElementById('trackList').innerHTML=selectedTracks.map((t,i)=>`
+      <div class="track-item">
+        <div class="track-num">${i+1}</div>
+        <div class="track-thumb-el">♪</div>
+        <div class="track-info"><div class="track-name-el">${t.name}</div><div class="track-artist-el">${t.artist}</div></div>
+        <div class="track-dur-el">${fmt(t.duration)}</div>
+        <button class="track-remove-btn" onclick="removeTrack('${t.id}')">✕</button>
+      </div>`).join('');
+    const totalBar=document.getElementById('totalBar');
+    if(selectedTracks.length>0){
+      document.getElementById('totalVal').textContent=fmt(selectedTracks.reduce((s,t)=>s+t.duration,0));
+      totalBar.style.display='flex';
+    } else { totalBar.style.display='none'; }
+  }
+
+  function checkStep2(){
+    const ok=selectedTracks.length>=1&&document.getElementById('reason').value.trim().length>=5;
+    document.getElementById('submitBtn').disabled=!ok;
+  }
+
+  function setStep(n){
+    ['sn1','sn2','sn3'].forEach((id,i)=>{
+      const el=document.getElementById(id);
+      el.className='step-node'+(i+1<n?' done':i+1===n?' active':'');
+      document.getElementById('sc'+(i+1)).textContent=i+1<n?'✓':i+1;
+    });
+    ['sl1','sl2'].forEach((id,i)=>{
+      document.getElementById(id).className='step-line'+(i+1<n?' done':'');
+    });
+  }
+
+  function goStep2(){
+    document.getElementById('bannerTitle').textContent=selectedBook.title;
+    document.getElementById('bannerAuthor').textContent=selectedBook.author;
+    document.getElementById('bannerPub').textContent=selectedBook.publisher;
+    document.getElementById('step1View').style.display='none';
+    document.getElementById('step2View').style.display='block';
+    setStep(2);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function goBack(){
+    document.getElementById('step2View').style.display='none';
+    document.getElementById('step1View').style.display='block';
+    setStep(1);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  async function submitForm(){
+    const btn=document.getElementById('submitBtn');
+    btn.disabled=true; btn.textContent='제출 중...';
+    const displayName=anonMode==='anon'
+      ? document.getElementById('nickname').value.trim()
+      : document.getElementById('realName').value.trim()+' · '+document.getElementById('realDept').value.trim();
+    const payload={anonMode,displayName,book:selectedBook,bookQuote:document.getElementById('bookQuote').value.trim(),tracks:selectedTracks,totalDuration:selectedTracks.reduce((s,t)=>s+t.duration,0),reason:document.getElementById('reason').value.trim(),submittedAt:new Date().toISOString()};
+    // await fetch('https://script.google.com/macros/s/AKfycbwvxddIfUU2lI-cEChKlRVtdgDB-xCJ6O4M9Qx1uFtVykOsLvbJimRPjhFkI11hlvSc/exec',{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
+    await new Promise(r=>setTimeout(r,1000));
+    console.log('제출 데이터:',payload);
+    document.getElementById('step2View').style.display='none';
+    document.getElementById('successView').style.display='block';
+    setStep(4);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function fmt(sec){return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');}
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('bookSearch').addEventListener('keydown',e=>{if(e.key==='Enter')searchBook();});
+    document.getElementById('trackSearch').addEventListener('keydown',e=>{if(e.key==='Enter')searchTrack();});
+    ['nickname','realName','realDept'].forEach(id=>document.getElementById(id).addEventListener('input',checkStep1));
+    document.getElementById('bookQuote').addEventListener('input',function(){document.getElementById('quoteCount').textContent=this.value.length;checkStep1();});
+    document.getElementById('reason').addEventListener('input',function(){document.getElementById('reasonCount').textContent=this.value.length;checkStep2();});
+  });
+</script>
+</body>
+</html>
