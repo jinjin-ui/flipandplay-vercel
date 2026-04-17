@@ -423,6 +423,13 @@
     document.getElementById('bookTitleEl').textContent=selectedBook.title;
     document.getElementById('bookAuthorEl').textContent=selectedBook.author;
     document.getElementById('bookPubEl').textContent=selectedBook.publisher+(selectedBook.pubDate?' · '+selectedBook.pubDate:'');
+    // 책 표지 이미지
+    const coverWrap=document.getElementById('bookCoverWrap');
+    if(selectedBook.cover){
+      coverWrap.innerHTML=`<img src="${selectedBook.cover}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;" onerror="this.parentNode.innerHTML='📖'">`;
+    } else {
+      coverWrap.innerHTML='📖';
+    }
     checkStep1();
   }
 
@@ -480,7 +487,7 @@
       const tracks=await res.json();
       trackSearchResults=tracks;
       box.innerHTML=tracks.length
-        ? tracks.map((t,i)=>`<div class="result-item" onclick="addTrack(${i})"><div class="result-thumb-round">♪</div><div class="result-info"><div class="result-title">${t.name}</div><div class="result-sub">${t.artist}</div></div><div class="result-dur">${fmt(t.duration)}</div></div>`).join('')
+        ? tracks.map((t,i)=>`<div class="result-item" onclick="addTrack(${i})">${t.thumb?`<img src="${t.thumb}" class="result-thumb-round" style="width:36px;height:36px;object-fit:cover;border-radius:50%;">`:'<div class="result-thumb-round">♪</div>'}<div class="result-info"><div class="result-title">${t.name}</div><div class="result-sub">${t.artist}</div></div><div class="result-dur">${fmt(t.duration)}</div></div>`).join('')
         : '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 결과가 없습니다.</div>';
     }catch(e){box.innerHTML='<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 오류가 발생했습니다.</div>';}
   }
@@ -508,7 +515,7 @@
     document.getElementById('trackList').innerHTML=selectedTracks.map((t,i)=>`
       <div class="track-item">
         <div class="track-num">${i+1}</div>
-        <div class="track-thumb-el">♪</div>
+        <div class="track-thumb-el">${t.thumb?`<img src="${t.thumb}" style="width:34px;height:34px;object-fit:cover;border-radius:50%;">`:'♪'}</div>
         <div class="track-info"><div class="track-name-el">${t.name}</div><div class="track-artist-el">${t.artist}</div></div>
         <div class="track-dur-el">${fmt(t.duration)}</div>
         <button class="track-remove-btn" onclick="removeTrack('${t.id}')">✕</button>
@@ -541,6 +548,13 @@
     document.getElementById('bannerTitle').textContent=selectedBook.title;
     document.getElementById('bannerAuthor').textContent=selectedBook.author;
     document.getElementById('bannerPub').textContent=selectedBook.publisher;
+    // 배너 표지 이미지
+    const bannerCover=document.getElementById('bannerCover');
+    if(selectedBook.cover){
+      bannerCover.innerHTML=`<img src="${selectedBook.cover}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;" onerror="this.parentNode.innerHTML='📖'">`;
+    } else {
+      bannerCover.innerHTML='📖';
+    }
     document.getElementById('step1View').style.display='none';
     document.getElementById('step2View').style.display='block';
     setStep(2);
