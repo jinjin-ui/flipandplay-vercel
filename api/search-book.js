@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       author: b.author,
       publisher: b.publisher,
       pubDate: b.pubDate?.substring(0, 4),
-      cover: b.cover?.replace('coversum', 'cover200') || '',
+      cover: (b.cover?.replace('coversum', 'cover200') || '').replace('http://', 'https://'),
       isbn: b.isbn13,
     }));
 
