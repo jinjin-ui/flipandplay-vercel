@@ -640,10 +640,16 @@
     document.getElementById('introTitle').textContent = c.book.title;
     document.getElementById('introAuthor').textContent = c.book.author + ' · ' + c.book.publisher;
     document.getElementById('introQuote').textContent = c.quote;
-    document.getElementById('coverTitle').textContent = c.book.title;
-    document.getElementById('coverAuthor').textContent = c.book.author;
     document.getElementById('curatorName').textContent = c.curator;
     document.getElementById('reasonText').textContent = c.reason;
+
+    // 책 표지 이미지
+    const coverEl = document.getElementById('bookCoverEl');
+    if (c.book.cover) {
+      coverEl.innerHTML = `<img src="${c.book.cover}" style="width:100%;height:100%;object-fit:cover;border-radius:4px;" onerror="this.parentNode.innerHTML='<div style=\\'text-align:center;padding:20px\\'><div style=\\'font-size:14px;font-weight:700;color:#F0EEF8\\'>${c.book.title}</div><div style=\\'font-size:11px;color:rgba(255,255,255,0.4);margin-top:8px\\'>${c.book.author}</div></div>'">`;
+    } else {
+      coverEl.innerHTML = `<div class="book-cover-placeholder-text"><div class="placeholder-title">${c.book.title}</div><div class="placeholder-author">${c.book.author}</div></div>`;
+    }
 
     renderTracks(c, 0);
     elapsed = 0;
@@ -655,7 +661,10 @@
     el.innerHTML = c.tracks.map((t, i) => `
       <div class="track-row ${i === activeIdx ? 'active' : ''}" onclick="jumpToTrack(${i})">
         <div class="track-thumb ${i === activeIdx ? 'active-thumb' : ''}">
-          <span class="track-icon" style="font-size:16px;color:rgba(255,255,255,0.2)">♪</span>
+          ${t.thumb
+            ? `<img src="${t.thumb}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;" onerror="this.style.display='none'">`
+            : `<span class="track-icon" style="font-size:16px;color:rgba(255,255,255,0.2)">♪</span>`
+          }
           <div class="playing-bars">
             <div class="playing-bar"></div>
             <div class="playing-bar"></div>
