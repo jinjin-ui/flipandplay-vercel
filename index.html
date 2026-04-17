@@ -178,26 +178,40 @@
 
   <!-- STEP 1 -->
   <div id="step1View" class="view">
+
+    <!-- 1. 기본 정보 (필수) -->
     <div class="block">
       <div class="block-label">
         <div class="block-num">1</div>
         <div>
-          <div class="block-title">참여자 이름 공개 여부</div>
-          <div class="block-desc">빔프로젝터 화면에 표시되는 방식을 선택해주세요.</div>
+          <div class="block-title">참여자 정보</div>
+          <div class="block-desc">추첨을 위해 필요한 정보입니다. 학번은 외부에 공개되지 않습니다.</div>
+        </div>
+      </div>
+      <div class="input-row" style="margin-bottom:8px;">
+        <input class="inp" id="studentId" placeholder="학번 (예: 20241234)" type="text" style="max-width:180px;flex:none"/>
+        <input class="inp" id="realName" placeholder="이름" type="text" style="max-width:120px;flex:none"/>
+        <input class="inp" id="realDept" placeholder="학과 (예: 경영학과)" type="text"/>
+      </div>
+    </div>
+
+    <hr class="divider"/>
+
+    <!-- 2. 공개 여부 -->
+    <div class="block">
+      <div class="block-label">
+        <div class="block-num">2</div>
+        <div>
+          <div class="block-title">화면 공개 방식</div>
+          <div class="block-desc">빔프로젝터 화면에 표시되는 이름 방식을 선택해주세요. 학번은 어떤 경우에도 공개되지 않습니다.</div>
         </div>
       </div>
       <div class="toggle-group">
         <button class="toggle-btn" id="btnAnon" onclick="selectAnon('anon')">익명<div class="toggle-btn-sub">별명으로 표시</div></button>
-        <button class="toggle-btn" id="btnReal" onclick="selectAnon('real')">실명<div class="toggle-btn-sub">이름 + 학과 표시</div></button>
+        <button class="toggle-btn" id="btnReal" onclick="selectAnon('real')">실명<div class="toggle-btn-sub">학과 + 이름 표시</div></button>
       </div>
       <div class="cond-fields" id="fieldAnon">
         <input class="inp" id="nickname" placeholder="별명을 입력해주세요 (예: 책읽는고양이)" type="text"/>
-      </div>
-      <div class="cond-fields" id="fieldReal">
-        <div class="input-row">
-          <input class="inp" id="realName" placeholder="이름" type="text" style="max-width:150px;flex:none"/>
-          <input class="inp" id="realDept" placeholder="학과 (예: 경영학과 3학년)" type="text"/>
-        </div>
       </div>
     </div>
 
@@ -320,6 +334,30 @@
       <div class="char-count"><span id="reasonCount">0</span>자</div>
     </div>
 
+    <!-- 개인정보 동의 -->
+    <div class="block" style="margin-top:8px;">
+      <div style="background:var(--bg2);border:.5px solid var(--border);border-radius:8px;padding:16px;">
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.8;margin-bottom:14px;">
+          <strong style="color:var(--text);display:block;margin-bottom:6px;">개인정보 수집 및 이용 동의</strong>
+          수집 항목: 학번, 이름, 학과<br>
+          수집 목적: 추첨을 통한 학습지원금 지급<br>
+          보유 기간: 프로그램 종료 후 즉시 파기<br>
+          학번은 외부에 공개되지 않으며 추첨 목적으로만 사용됩니다.
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="toggle-btn" id="btnAgree" onclick="selectAgree(true)" style="font-size:13px;padding:10px;">
+            동의합니다
+          </button>
+          <button class="toggle-btn" id="btnDisagree" onclick="selectAgree(false)" style="font-size:13px;padding:10px;">
+            동의하지 않습니다
+          </button>
+        </div>
+        <div id="disagreeMsg" style="display:none;margin-top:10px;font-size:12px;color:#E24B4A;">
+          개인정보 수집에 동의하셔야 제출이 가능합니다.
+        </div>
+      </div>
+    </div>
+
     <button class="submit-btn" id="submitBtn" onclick="submitForm()" disabled>큐레이션 신청하기 →</button>
     <button class="back-btn" onclick="goBack()">← 이전으로</button>
     <div class="bottom-note"><span>✨ 선정된 내용은 3F 도서관 화면에 소개됩니다.</span></div>
@@ -338,65 +376,53 @@
 </div>
 
 <script>
-  let anonMode=null, selectedBook=null, loanFileData=null, selectedTracks=[];
+  let anonMode=null, selectedBook=null, loanFileData=null, selectedTracks=[], privacyAgreed=false;
+  let bookSearchResults=[], trackSearchResults=[];
 
-  const demoBooks=[
-    {id:1,title:'채식주의자',author:'한강',publisher:'창비 · 2007'},
-    {id:2,title:'82년생 김지영',author:'조남주',publisher:'민음사 · 2016'},
-    {id:3,title:'아몬드',author:'손원평',publisher:'창비 · 2017'},
-    {id:4,title:'달러구트 꿈 백화점',author:'이미예',publisher:'팩토리나인 · 2020'},
-    {id:5,title:'불편한 편의점',author:'김호연',publisher:'나무옆의자 · 2021'},
-    {id:6,title:'파친코',author:'이민진',publisher:'문학사상 · 2018'},
-    {id:7,title:'흰',author:'한강',publisher:'문학동네 · 2016'},
-    {id:8,title:'소년이 온다',author:'한강',publisher:'창비 · 2014'},
-    {id:9,title:'나미야 잡화점의 기적',author:'히가시노 게이고',publisher:'현대문학 · 2012'},
-    {id:10,title:'노르웨이의 숲',author:'무라카미 하루키',publisher:'문학동네 · 2013'},
-  ];
-
-  const demoTracks=[
-    {id:'t1',name:'Blinding Lights',artist:'The Weeknd',duration:200},
-    {id:'t2',name:'drivers license',artist:'Olivia Rodrigo',duration:242},
-    {id:'t3',name:'아이와 나의 바다',artist:'IU',duration:238},
-    {id:'t4',name:'Dynamite',artist:'BTS',duration:199},
-    {id:'t5',name:'Celebrity',artist:'IU',duration:213},
-    {id:'t6',name:'After LIKE',artist:'IVE',duration:175},
-    {id:'t7',name:'ANTIFRAGILE',artist:'LE SSERAFIM',duration:170},
-    {id:'t8',name:'Hype Boy',artist:'NewJeans',duration:175},
-    {id:'t9',name:'좋은 날',artist:'IU',duration:229},
-    {id:'t10',name:'봄날',artist:'BTS',duration:300},
-    {id:'t11',name:'사랑하기 때문에',artist:'유재하',duration:253},
-    {id:'t12',name:'Starboy',artist:'The Weeknd',duration:230},
-  ];
-
+  // ── 공개 여부 ──
   function selectAnon(mode){
     anonMode=mode;
     document.getElementById('btnAnon').classList.toggle('selected',mode==='anon');
     document.getElementById('btnReal').classList.toggle('selected',mode==='real');
     document.getElementById('fieldAnon').classList.toggle('show',mode==='anon');
-    document.getElementById('fieldReal').classList.toggle('show',mode==='real');
     checkStep1();
   }
 
-  function searchBook(){
-    const q=document.getElementById('bookSearch').value.trim();
-    if(!q)return;
-    const results=demoBooks.filter(b=>b.title.includes(q)||b.author.includes(q));
-    const box=document.getElementById('bookResults');
-    box.style.display='block';
-    box.innerHTML=results.length
-      ? results.map(b=>`<div class="result-item" onclick="selectBook(${b.id})"><div class="result-thumb">📖</div><div class="result-info"><div class="result-title">${b.title}</div><div class="result-sub">${b.author} · ${b.publisher}</div></div></div>`).join('')
-      : '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 결과가 없습니다.</div>';
+  // ── 개인정보 동의 ──
+  function selectAgree(agreed){
+    privacyAgreed=agreed;
+    document.getElementById('btnAgree').classList.toggle('selected',agreed);
+    document.getElementById('btnDisagree').classList.toggle('selected',!agreed);
+    document.getElementById('disagreeMsg').style.display=agreed?'none':'block';
+    checkStep2();
   }
 
-  function selectBook(id){
-    selectedBook=demoBooks.find(b=>b.id===id);
+  // ── 도서 검색 (알라딘 API) ──
+  async function searchBook(){
+    const q=document.getElementById('bookSearch').value.trim();
+    if(!q)return;
+    const box=document.getElementById('bookResults');
+    box.style.display='block';
+    box.innerHTML='<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 중...</div>';
+    try{
+      const res=await fetch(`/api/search-book?q=${encodeURIComponent(q)}`);
+      const books=await res.json();
+      bookSearchResults=books;
+      box.innerHTML=books.length
+        ? books.map((b,i)=>`<div class="result-item" onclick="selectBook(${i})">${b.cover?`<img src="${b.cover}" class="result-thumb" style="width:36px;height:52px;object-fit:cover;border-radius:2px;">`:'<div class="result-thumb">📖</div>'}<div class="result-info"><div class="result-title">${b.title}</div><div class="result-sub">${b.author} · ${b.publisher}${b.pubDate?' · '+b.pubDate:''}</div></div></div>`).join('')
+        : '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 결과가 없습니다.</div>';
+    }catch(e){box.innerHTML='<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 오류가 발생했습니다.</div>';}
+  }
+
+  function selectBook(idx){
+    selectedBook=bookSearchResults[idx];
     if(!selectedBook)return;
     document.getElementById('bookResults').style.display='none';
     document.getElementById('bookSearch').value='';
     document.getElementById('bookCard').classList.add('show');
     document.getElementById('bookTitleEl').textContent=selectedBook.title;
     document.getElementById('bookAuthorEl').textContent=selectedBook.author;
-    document.getElementById('bookPubEl').textContent=selectedBook.publisher;
+    document.getElementById('bookPubEl').textContent=selectedBook.publisher+(selectedBook.pubDate?' · '+selectedBook.pubDate:'');
     checkStep1();
   }
 
@@ -406,6 +432,7 @@
     checkStep1();
   }
 
+  // ── 파일 업로드 ──
   function handleFile(input){
     if(!input.files||!input.files[0])return;
     const file=input.files[0];
@@ -429,31 +456,40 @@
     checkStep1();
   }
 
+  // ── Step1 유효성 ──
   function checkStep1(){
-    const nameOk=anonMode==='anon'
-      ? document.getElementById('nickname').value.trim().length>0
-      : document.getElementById('realName').value.trim().length>0&&document.getElementById('realDept').value.trim().length>0;
+    const studentId=document.getElementById('studentId').value.trim();
+    const name=document.getElementById('realName').value.trim();
+    const dept=document.getElementById('realDept').value.trim();
+    const baseOk=studentId.length>0&&name.length>0&&dept.length>0;
+    const anonOk=!anonMode||(anonMode==='anon'?document.getElementById('nickname').value.trim().length>0:true);
     const quoteOk=document.getElementById('bookQuote').value.trim().length>=10;
-    document.getElementById('nextBtn1').disabled=!(anonMode&&nameOk&&selectedBook&&loanFileData&&quoteOk);
+    document.getElementById('nextBtn1').disabled=!(baseOk&&anonMode&&anonOk&&selectedBook&&loanFileData&&quoteOk);
   }
 
-  function searchTrack(){
+  // ── 음악 검색 (MusicBrainz API) ──
+  async function searchTrack(){
     const q=document.getElementById('trackSearch').value.trim();
     if(!q)return;
     if(selectedTracks.length>=3){alert('최대 3곡까지 선택할 수 있습니다.');return;}
-    const results=demoTracks.filter(t=>t.name.toLowerCase().includes(q.toLowerCase())||t.artist.toLowerCase().includes(q.toLowerCase()));
     const box=document.getElementById('trackResults');
     box.style.display='block';
-    box.innerHTML=results.length
-      ? results.map(t=>`<div class="result-item" onclick="addTrack('${t.id}')"><div class="result-thumb-round">♪</div><div class="result-info"><div class="result-title">${t.name}</div><div class="result-sub">${t.artist}</div></div><div class="result-dur">${fmt(t.duration)}</div></div>`).join('')
-      : '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 결과가 없습니다.</div>';
+    box.innerHTML='<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 중...</div>';
+    try{
+      const res=await fetch(`/api/search-track?q=${encodeURIComponent(q)}`);
+      const tracks=await res.json();
+      trackSearchResults=tracks;
+      box.innerHTML=tracks.length
+        ? tracks.map((t,i)=>`<div class="result-item" onclick="addTrack(${i})"><div class="result-thumb-round">♪</div><div class="result-info"><div class="result-title">${t.name}</div><div class="result-sub">${t.artist}</div></div><div class="result-dur">${fmt(t.duration)}</div></div>`).join('')
+        : '<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 결과가 없습니다.</div>';
+    }catch(e){box.innerHTML='<div style="padding:14px 16px;font-size:13px;color:var(--text-dim)">검색 오류가 발생했습니다.</div>';}
   }
 
-  function addTrack(id){
+  function addTrack(idx){
     if(selectedTracks.length>=3){alert('최대 3곡까지 선택할 수 있습니다.');return;}
-    if(selectedTracks.find(t=>t.id===id)){alert('이미 추가된 곡입니다.');return;}
-    const track=demoTracks.find(t=>t.id===id);
+    const track=trackSearchResults[idx];
     if(!track)return;
+    if(selectedTracks.find(t=>t.id===track.id)){alert('이미 추가된 곡입니다.');return;}
     selectedTracks.push(track);
     document.getElementById('trackResults').style.display='none';
     document.getElementById('trackSearch').value='';
@@ -481,11 +517,12 @@
     if(selectedTracks.length>0){
       document.getElementById('totalVal').textContent=fmt(selectedTracks.reduce((s,t)=>s+t.duration,0));
       totalBar.style.display='flex';
-    } else { totalBar.style.display='none'; }
+    }else{totalBar.style.display='none';}
   }
 
+  // ── Step2 유효성 ──
   function checkStep2(){
-    const ok=selectedTracks.length>=1&&document.getElementById('reason').value.trim().length>=5;
+    const ok=selectedTracks.length>=1&&document.getElementById('reason').value.trim().length>=5&&privacyAgreed;
     document.getElementById('submitBtn').disabled=!ok;
   }
 
@@ -520,13 +557,30 @@
   async function submitForm(){
     const btn=document.getElementById('submitBtn');
     btn.disabled=true; btn.textContent='제출 중...';
+    const studentId=document.getElementById('studentId').value.trim();
+    const name=document.getElementById('realName').value.trim();
+    const dept=document.getElementById('realDept').value.trim();
     const displayName=anonMode==='anon'
       ? document.getElementById('nickname').value.trim()
-      : document.getElementById('realName').value.trim()+' · '+document.getElementById('realDept').value.trim();
-    const payload={anonMode,displayName,book:selectedBook,bookQuote:document.getElementById('bookQuote').value.trim(),tracks:selectedTracks,totalDuration:selectedTracks.reduce((s,t)=>s+t.duration,0),reason:document.getElementById('reason').value.trim(),submittedAt:new Date().toISOString()};
-    // await fetch('https://script.google.com/macros/s/AKfycbySAvVQLWFkiRxr-E1I-1DOdCcvMsP-dnTLUotzf7uWV5DF6kzsH_yDcjtEjS9T-Dov/exec',{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});
-    await new Promise(r=>setTimeout(r,1000));
-    console.log('제출 데이터:',payload);
+      : dept+' '+name;
+    const payload={
+      anonMode, displayName,
+      studentId, name, dept,
+      book:selectedBook,
+      bookQuote:document.getElementById('bookQuote').value.trim(),
+      tracks:selectedTracks,
+      totalDuration:selectedTracks.reduce((s,t)=>s+t.duration,0),
+      reason:document.getElementById('reason').value.trim(),
+      privacyAgreed,
+      submittedAt:new Date().toISOString()
+    };
+    try{
+      await fetch('https://script.google.com/macros/s/AKfycbySAvVQLWFkiRxr-E1I-1DOdCcvMsP-dnTLUotzf7uWV5DF6kzsH_yDcjtEjS9T-Dov/exec',{
+        method:'POST',mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+    }catch(e){console.error(e);}
     document.getElementById('step2View').style.display='none';
     document.getElementById('successView').style.display='block';
     setStep(4);
@@ -538,7 +592,7 @@
   document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('bookSearch').addEventListener('keydown',e=>{if(e.key==='Enter')searchBook();});
     document.getElementById('trackSearch').addEventListener('keydown',e=>{if(e.key==='Enter')searchTrack();});
-    ['nickname','realName','realDept'].forEach(id=>document.getElementById(id).addEventListener('input',checkStep1));
+    ['studentId','nickname','realName','realDept'].forEach(id=>document.getElementById(id).addEventListener('input',checkStep1));
     document.getElementById('bookQuote').addEventListener('input',function(){document.getElementById('quoteCount').textContent=this.value.length;checkStep1();});
     document.getElementById('reason').addEventListener('input',function(){document.getElementById('reasonCount').textContent=this.value.length;checkStep2();});
   });
