@@ -420,7 +420,7 @@
   </header>
 
   <div class="notice">
-    ✅ Google Apps Script 연동 완료
+    ✅ Google Apps Script 연동 완료 — 상단 "시트에서 불러오기" 버튼을 눌러 신청 내역을 가져오세요.
   </div>
 
   <!-- Stats -->
@@ -503,69 +503,8 @@
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbySAvVQLWFkiRxr-E1I-1DOdCcvMsP-dnTLUotzf7uWV5DF6kzsH_yDcjtEjS9T-Dov/exec'; // 여기에 Apps Script URL 입력
 
   // ── 데모 데이터 ──
-  let submissions = [
-    {
-      id: 1,
-      status: 'pending',
-      displayName: '책읽는고양이',
-      anonMode: 'anon',
-      book: { title: '채식주의자', author: '한강', publisher: '창비 · 2007' },
-      bookQuote: '"나는 이상하게 될 것이다. 이미 이상해지기 시작했는지도 모른다. 하지만 이 이상함이 나를 자유롭게 한다."',
-      tracks: [
-        { name: 'Blinding Lights', artist: 'The Weeknd', duration: 200 },
-        { name: '아이와 나의 바다', artist: 'IU', duration: 238 },
-        { name: 'drivers license', artist: 'Olivia Rodrigo', duration: 242 },
-      ],
-      reason: '주인공의 내면 흐름이 이 곡들의 분위기와 닮아있다고 생각했어요.',
-      submittedAt: '2025-05-01T14:23:00',
-      loanImg: null,
-    },
-    {
-      id: 2,
-      status: 'approved',
-      displayName: '음악탐험가',
-      anonMode: 'anon',
-      book: { title: '82년생 김지영', author: '조남주', publisher: '민음사 · 2016' },
-      bookQuote: '"누군가의 딸이고 누군가의 아내이고 누군가의 엄마이기 이전에, 김지영은 김지영이었다."',
-      tracks: [
-        { name: 'Celebrity', artist: 'IU', duration: 213 },
-        { name: 'After LIKE', artist: 'IVE', duration: 175 },
-      ],
-      reason: '책이 전하는 메시지와 이 곡들의 당당함이 잘 맞아떨어진다고 생각했어요.',
-      submittedAt: '2025-05-02T10:11:00',
-      loanImg: null,
-    },
-    {
-      id: 3,
-      status: 'rejected',
-      displayName: '이지연 · 심리학과 2학년',
-      anonMode: 'real',
-      book: { title: '아몬드', author: '손원평', publisher: '창비 · 2017' },
-      bookQuote: '"감정이 없다는 건 아프지 않다는 게 아니다. 그냥 다르게 아픈 것이다."',
-      tracks: [
-        { name: 'Hype Boy', artist: 'NewJeans', duration: 175 },
-      ],
-      reason: '책의 감정 표현과 음악의 에너지가 대비되어 흥미롭다고 생각했어요.',
-      submittedAt: '2025-05-02T16:44:00',
-      loanImg: null,
-    },
-    {
-      id: 4,
-      status: 'pending',
-      displayName: '노을읽는사람',
-      anonMode: 'anon',
-      book: { title: '봄날', author: '백수린', publisher: '민음사 · 2020' },
-      bookQuote: '"봄은 언제나 그렇게 찾아온다. 아무도 모르게, 아무도 준비하지 않은 사이에."',
-      tracks: [
-        { name: '봄날', artist: 'BTS', duration: 300 },
-        { name: '좋은 날', artist: 'IU', duration: 229 },
-        { name: '사랑하기 때문에', artist: '유재하', duration: 253 },
-      ],
-      reason: '봄날의 따뜻하고 쓸쓸한 감성이 이 책의 분위기와 딱 맞았어요.',
-      submittedAt: '2025-05-03T09:05:00',
-      loanImg: null,
-    },
-  ];
+  let submissions = [];
+
 
   let currentFilter = 'all';
   let currentDetailId = null;
